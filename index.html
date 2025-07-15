@@ -11,16 +11,6 @@
             box-sizing: border-box;
         }
 
-        function startWriting(type) {
-            const typeNames = {
-                'argumentative': 'החיבור הטיעוני',
-                'descriptive': 'הכתיבה היצירתית',
-                'formal_letter': 'המכתב הרשמי'
-            };
-            
-            alert('🎉 מעולה! עכשיו אתה מוכן להתחיל לכתוב את ' + typeNames[type] + ' שלך!\n\n💡 טיפ: שמור את המתווה בצד וכתוב לפיו את החיבור במחברת או במחשב.\n\nבהצלחה! 🚀');
-        }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -62,7 +52,6 @@
             backdrop-filter: blur(10px);
         }
 
-        /* דף השער - רק 3 קוביות */
         .homepage {
             text-align: center;
         }
@@ -158,7 +147,6 @@
             transition: color 0.3s ease;
         }
 
-        /* דפי הכתיבה */
         .step-content {
             display: none;
             animation: fadeIn 0.5s ease-in;
@@ -339,48 +327,71 @@
             text-align: center;
         }
 
-        .btn-auto-fix {
-            background: linear-gradient(45deg, #ff6b35, #f7931e);
+        .chatgpt-redirect {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .chatgpt-redirect h4 {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .chatgpt-redirect p {
+            color: #856404;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .btn-chatgpt {
+            background: linear-gradient(45deg, #10a37f, #20c997);
             color: white;
             border: none;
-            padding: 12px 25px;
+            padding: 15px 30px;
             border-radius: 25px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255,107,53,0.3);
             transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(16, 163, 127, 0.3);
         }
 
-        .btn-auto-fix:hover {
+        .btn-chatgpt:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255,107,53,0.4);
+            box-shadow: 0 6px 20px rgba(16, 163, 127, 0.4);
+            color: white;
+            text-decoration: none;
         }
 
-        .help-button {
-            background: #007bff;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 15px;
-            text-decoration: none;
-            font-size: 12px;
-            display: inline-flex;
+        .word-error {
+            background: #fff5f5;
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 5px;
-            transition: all 0.3s ease;
         }
 
-        .help-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-            text-decoration: none;
-            color: white;
+        .word-error .error-word {
+            color: #dc3545;
+            font-weight: bold;
+            font-size: 16px;
         }
 
-        .help-button.dict { background: #007bff; }
-        .help-button.google { background: #28a745; }
-        .help-button.academy { background: #6f42c1; }
-        .help-button.fix { background: #ff6b35; border: none; cursor: pointer; }
+        .word-error .suggestion {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 16px;
+        }
 
         @media (max-width: 768px) {
             .container {
@@ -423,7 +434,7 @@
         </div>
 
         <div class="main-content">
-            <!-- דף השער - רק 3 קוביות בחירה -->
+            <!-- דף השער -->
             <div class="step-content active" id="homepage">
                 <div class="homepage">
                     <h2>בחר את סוג החיבור שברצונך לכתוב</h2>
@@ -651,13 +662,27 @@
     </div>
 
     <script>
+        // פונקציות בסיסיות
         function selectEssayType(type) {
-            document.getElementById('homepage').classList.remove('active');
-            document.getElementById(type).classList.add('active');
-            window.scrollTo(0, 0);
+            console.log('selectEssayType נקראה עם:', type);
+            
+            document.querySelectorAll('.step-content').forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            const targetStep = document.getElementById(type);
+            if (targetStep) {
+                targetStep.classList.add('active');
+                console.log('עבר לדף:', type);
+                window.scrollTo(0, 0);
+            } else {
+                console.error('לא נמצא אלמנט עם ID:', type);
+            }
         }
 
         function goBack() {
+            console.log('goBack נקראה');
+            
             document.querySelectorAll('.step-content').forEach(step => {
                 step.classList.remove('active');
             });
@@ -677,17 +702,25 @@
                 existingErrorDetails.remove();
             }
             
-            document.getElementById('homepage').classList.add('active');
-            window.scrollTo(0, 0);
+            const homepage = document.getElementById('homepage');
+            if (homepage) {
+                homepage.classList.add('active');
+                console.log('חזר לדף הבית');
+                window.scrollTo(0, 0);
+            }
         }
 
-        async function generateOutline(type) {
-            const hasNoErrors = await checkAllInputsForSpelling(type);
-            if (!hasNoErrors) {
-                showMessage('נמצאו שגיאות כתיב בטקסט! אנא תקן את השגיאות לפני יצירת המתווה.', 'error');
-                return;
-            }
+        function startWriting(type) {
+            const typeNames = {
+                'argumentative': 'החיבור הטיעוני',
+                'descriptive': 'הכתיבה היצירתית',
+                'formal_letter': 'המכתב הרשמי'
+            };
+            
+            alert('🎉 מעולה! עכשיו אתה מוכן להתחיל לכתוב את ' + typeNames[type] + ' שלך!\n\n💡 טיפ: שמור את המתווה בצד וכתוב לפיו את החיבור במחברת או במחשב.\n\nבהצלחה! 🚀');
+        }
 
+        function generateOutline(type) {
             let outlineHtml = '';
 
             switch(type) {
@@ -805,1018 +838,535 @@
             showMessage('המתווה נוצר בהצלחה! 🎉', 'success');
         }
 
-        async function checkAllInputsForSpelling(sectionType) {
-            const section = document.getElementById(sectionType);
-            const inputs = section.querySelectorAll('input, textarea');
-            let hasErrors = false;
-
-            showMessage('🔍 בודק שגיאות כתיב עם בינה מלאכותית...', 'info');
-
-            for (const input of inputs) {
-                if (input.value.trim()) {
-                    try {
-                        const errors = await checkSpellingInText(input.value);
-                        if (errors.length > 0) {
-                            hasErrors = true;
-                            input.style.borderColor = '#dc3545';
-                            input.style.backgroundColor = '#fff5f5';
-                        } else {
-                            input.style.borderColor = '#28a745';
-                            input.style.backgroundColor = '#f0fff4';
-                        }
-                    } catch (error) {
-                        console.log('שגיאה בבדיקת כתיב:', error);
-                        const errors = checkSpellingLocal(input.value);
-                        if (errors.length > 0) {
-                            hasErrors = true;
-                            input.style.borderColor = '#dc3545';
-                            input.style.backgroundColor = '#fff5f5';
-                        } else {
-                            input.style.borderColor = '#28a745';
-                            input.style.backgroundColor = '#f0fff4';
-                        }
-                    }
-                }
-            }
-
-            return !hasErrors;
-        }
-
         async function checkSpellingBeforeOutline(sectionType) {
             const section = document.getElementById(sectionType);
             const inputs = section.querySelectorAll('input, textarea');
-            let totalErrors = 0;
-            let errorDetails = [];
             let totalWords = 0;
+            let allText = '';
 
-            // הצג הודעת טעינה משופרת
-            showMessage('🎯 מתחיל בדיקה ממוקדת של שגיאות כתיב בעברית...', 'info');
-
+            // איסוף כל הטקסט
             for (const input of inputs) {
                 if (input.value.trim()) {
-                    const wordCount = input.value.split(/\s+/).length;
-                    totalWords += wordCount;
-                    
-                    // הצג התקדמות
-                    showMessage(`🔍 בודק שגיאות כתיב בשדה: "${input.previousElementSibling.textContent}" (${wordCount} מילים)...`, 'info');
-                    
-                    try {
-                        const errors = await checkSpellingInText(input.value);
-                        if (errors.length > 0) {
-                            totalErrors += errors.length;
-                            input.style.borderColor = '#dc3545';
-                            input.style.backgroundColor = '#fff5f5';
-                            errorDetails.push({
-                                field: input.previousElementSibling.textContent,
-                                errors: errors
-                            });
-                        } else {
-                            input.style.borderColor = '#28a745';
-                            input.style.backgroundColor = '#f0fff4';
-                        }
-                    } catch (error) {
-                        console.log('שגיאה בבדיקת כתיב:', error);
-                        // אם יש שגיאה, השתמש בבדיקה מקומית
-                        const errors = checkSpellingLocal(input.value);
-                        if (errors.length > 0) {
-                            totalErrors += errors.length;
-                            input.style.borderColor = '#dc3545';
-                            input.style.backgroundColor = '#fff5f5';
-                            errorDetails.push({
-                                field: input.previousElementSibling.textContent,
-                                errors: errors
-                            });
-                        } else {
-                            input.style.borderColor = '#28a745';
-                            input.style.backgroundColor = '#f0fff4';
-                        }
-                    }
+                    allText += input.value + ' ';
+                    totalWords += input.value.split(/\s+/).length;
                 }
             }
 
-            // הסר הודעות שגיאות קודמות
+            if (totalWords === 0) {
+                showMessage('⚠️ אנא מלא את השדות לפני בדיקת כתיב', 'error');
+                return;
+            }
+
+            showMessage('🔍 מפנה לבדיקת כתיב מקצועית באתרי עברית...', 'info');
+
+            // הסר הודעות קודמות
             const existingErrorDetails = document.getElementById('errorDetails');
             if (existingErrorDetails) {
                 existingErrorDetails.remove();
             }
 
-            if (totalErrors > 0) {
-                showMessage(`🔍 נמצאו ${totalErrors} שגיאות כתיב מתוך ${totalWords} מילים. כל שגיאה מסומנת עם קישורים לעזרה בתיקון.`, 'error');
-                
-                // צור רשימה מפורטת של שגיאות
-                const errorDetailsDiv = document.createElement('div');
-                errorDetailsDiv.id = 'errorDetails';
-                errorDetailsDiv.style.cssText = `
-                    background: #fff3cd;
-                    border: 2px solid #ffc107;
-                    border-radius: 10px;
-                    padding: 20px;
-                    margin: 20px 0;
-                    max-height: 400px;
-                    overflow-y: auto;
-                `;
-                
-                let errorHtml = '<h4 style="color: #856404; margin-bottom: 15px; text-align: center;">🎯 שגיאות כתיב שנמצאו:</h4>';
-                
-                errorDetails.forEach(field => {
-                    errorHtml += '<div style="margin-bottom: 15px; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">';
-                    errorHtml += '<h5 style="color: #721c24; margin-bottom: 12px; font-size: 16px;">📍 ' + field.field + '</h5>';
-                    
-                    field.errors.forEach((error, index) => {
-                        const isAIError = error.type.includes('AI');
-                        const borderColor = isAIError ? '#17a2b8' : '#dc3545';
-                        
-                        errorHtml += '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-right: 4px solid ' + borderColor + ';">';
-                        
-                        // צד שמאל - המילה השגויה והסוג
-                        errorHtml += '<div style="flex: 1;">';
-                        errorHtml += '<div style="display: flex; align-items: center; margin-bottom: 5px;">';
-                        errorHtml += '<span style="background: ' + borderColor + '; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">' + error.type + '</span>';
-                        errorHtml += '<span style="color: #dc3545; font-weight: bold; margin-left: 10px;">❌ "' + error.word + '"</span>';
-                        errorHtml += '</div>';
-                        if (error.message) {
-                            errorHtml += '<div style="font-size: 12px; color: #6c757d; font-style: italic; margin-bottom: 5px;">' + error.message + '</div>';
-                        }
-                        errorHtml += '</div>';
-                        
-                        // צד ימין - ההצעה לתיקון
-                        errorHtml += '<div style="text-align: left;">';
-                        errorHtml += '<span style="color: #6c757d; margin: 0 10px; font-size: 16px;">→</span>';
-                        errorHtml += '<span style="color: #28a745; font-weight: bold; background: #e8f5e8; padding: 4px 8px; border-radius: 4px;">✅ ' + error.suggestion + '</span>';
-                        errorHtml += '</div>';
-                        
-                        errorHtml += '</div>';
-                        
-                        // הוסף כפתורי עזרה לתיקון
-                        errorHtml += '<div style="margin-top: 8px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">';
-                        
-                        // כפתור חיפוש במילון מורפיקס
-                        const morfixUrl = 'https://www.morfix.co.il/' + encodeURIComponent(error.word);
-                        errorHtml += '<a href="' + morfixUrl + '" target="_blank" class="help-button dict">';
-                        errorHtml += '📖 חפש במילון';
-                        errorHtml += '</a>';
-                        
-                        // כפתור חיפוש בגוגל לכתיב נכון
-                        const googleUrl = 'https://www.google.com/search?q=' + encodeURIComponent('"' + error.suggestion + '" כתיב נכון עברית');
-                        errorHtml += '<a href="' + googleUrl + '" target="_blank" class="help-button google">';
-                        errorHtml += '🔍 בדוק בגוגל';
-                        errorHtml += '</a>';
-                        
-                        // כפתור למידע נוסף באקדמיה ללשון העברית
-                        const academyUrl = 'https://hebrew-academy.org.il/keyword/' + encodeURIComponent(error.suggestion);
-                        errorHtml += '<a href="' + academyUrl + '" target="_blank" class="help-button academy">';
-                        errorHtml += '🎓 אקדמיה ללשון';
-                        errorHtml += '</a>';
-                        
-                        // כפתור העתקה לשדה הטקסט
-                        errorHtml += '<button onclick="copyCorrection(\'' + field.field + '\', \'' + error.word + '\', \'' + error.suggestion + '\')" class="help-button fix">';
-                        errorHtml += '✏️ תקן אוטומטית';
-                        errorHtml += '</button>';
-                        
-                        errorHtml += '</div>';
-                        errorHtml += '<hr style="margin: 15px 0; border: none; border-top: 1px solid #e9ecef;">';
-                    });
-                    
-                    errorHtml += '</div>';
-                });
-                
-                errorHtml += '<div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 2px solid #ffc107;">';
-                errorHtml += '<div style="margin-bottom: 15px;"><strong>💡 אפשרויות תיקון:</strong></div>';
-                
-                // כפתור לתיקון אוטומטי של כל השגיאות
-                errorHtml += '<div style="margin-bottom: 15px;">';
-                errorHtml += '<button onclick="fixAllErrors()" class="btn-auto-fix">';
-                errorHtml += '🚀 תקן את כל השגיאות אוטומטית';
-                errorHtml += '</button>';
-                errorHtml += '</div>';
-                
-                errorHtml += '<div style="font-size: 14px; color: #856404; line-height: 1.6;">';
-                errorHtml += '• <strong>תיקון אוטומטי:</strong> לחץ על "תקן אוטומטית" ליד כל שגיאת כתיב<br>';
-                errorHtml += '• <strong>בדיקה במילון:</strong> לחץ על "חפש במילון" לוודא את הכתיב הנכון<br>';
-                errorHtml += '• <strong>חיפוש בגוגל:</strong> לחץ על "בדוק בגוגל" לראות דוגמאות לשימוש<br>';
-                errorHtml += '• <strong>מקור אקדמי:</strong> לחץ על "אקדמיה ללשון" למידע מקצועי על הכתיב<br>';
-                errorHtml += '• <strong>לאחר התיקון:</strong> לחץ שוב על "בדוק שגיאות כתיב" לוודא שהכל תוקן';
-                errorHtml += '</div>';
-                errorHtml += '<div style="margin-top: 15px;"><small style="color: #856404;">🎯 מתמקדים בשגיאות כתיב בלבד - AI מתקדם + בדיקה מקומית מותאמת לעברית</small></div>';
-                errorHtml += '</div>';
-
-                errorDetailsDiv.innerHTML = errorHtml;
-                
-                // הוסף את רשימת השגיאות אחרי הכפתורים
-                const activeCard = document.querySelector('.step-content.active .card');
-                if (activeCard) {
-                    activeCard.appendChild(errorDetailsDiv);
-                }
-                
-            } else {
-                showMessage(`🎉 מצוין! לא נמצאו שגיאות כתיב ב-${totalWords} המילים. הטקסט שלך כתוב נכון ומוכן ליצירת מתווה!`, 'success');
-            }
+            // הפניה ישירה לכלי בדיקת כתיב מקצועיים
+            showHebrewSpellingCheckSites(allText, totalWords);
         }
 
-        async function checkSpellingInText(text) {
-            // תחילה נבדק עם הבדיקה המקומית המשופרת
-            let errors = checkSpellingLocal(text);
+        function showHebrewSpellingCheckSites(fullText, totalWords) {
+            const helpDiv = document.createElement('div');
+            helpDiv.id = 'errorDetails';
+            helpDiv.className = 'chatgpt-redirect';
             
-            // אם יש חיבור לאינטרנט, ננסה להשתמש ב-LanguageTool
-            try {
-                const response = await fetch('https://api.languagetool.org/v2/check', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        'text': text,
-                        'language': 'he',
-                        'enabledOnly': 'false'
-                    })
-                });
+            let helpHtml = '<h4>📋 בדיקת כתיב מקצועית - בדוק באתרי עברית מומחים!</h4>';
+            helpHtml += '<p><strong>הטקסט שלך מוכן לבדיקה:</strong> ' + totalWords + ' מילים נכתבו ומחכות לבדיקה מקצועית.</p>';
+            helpHtml += '<p><strong>למה חשוב לבדוק?</strong> גם כותבים מנוסים עושים שגיאות כתיב. בדיקה מקצועית תבטיח שהחיבור שלך יהיה מושלם!</p>';
+            
+            // אתרי בדיקת כתיב מקצועיים
+            helpHtml += '<div style="background: #e8f5e8; padding: 25px; border-radius: 15px; margin: 20px 0; border: 3px solid #28a745;">';
+            helpHtml += '<h5 style="color: #155724; margin-bottom: 20px; text-align: center; font-size: 1.3em;">🇮🇱 כלי בדיקת כתיב מקצועיים בעברית</h5>';
+            
+            // 1. מבדק כתיב - הכי פשוט ומהיר
+            helpHtml += '<div style="background: white; padding: 20px; border-radius: 12px; margin: 20px 0; border: 2px solid #ff9800; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">';
+            helpHtml += '<h6 style="color: #f57c00; margin-bottom: 15px; font-size: 1.2em;">⭐ מבדק כתיב - המומלץ ביותר!</h6>';
+            helpHtml += '<p style="margin-bottom: 15px; color: #333; line-height: 1.6;">כלי ישראלי מתקדם שמתמחה בבדיקת שגיאות כתיב בעברית. הכי מדויק וקל לשימוש!</p>';
+            
+            helpHtml += '<div style="background: #fff8e1; padding: 15px; border-radius: 8px; margin: 15px 0; border-right: 4px solid #ff9800;">';
+            helpHtml += '<h7 style="color: #f57c00; font-weight: bold; display: block; margin-bottom: 10px;">📋 איך להשתמש:</h7>';
+            helpHtml += '<ol style="margin: 0; padding-right: 20px; color: #333;">';
+            helpHtml += '<li>לחץ על הכפתור למטה</li>';
+            helpHtml += '<li>העתק את כל הטקסט שכתבת</li>';
+            helpHtml += '<li>הדבק באתר ולחץ "בדוק"</li>';
+            helpHtml += '<li>תקן את השגיאות שיזוהו</li>';
+            helpHtml += '</ol>';
+            helpHtml += '</div>';
+            
+            helpHtml += '<div style="text-align: center; margin: 15px 0;">';
+            helpHtml += '<a href="https://www.mivdak.co.il/" target="_blank" class="btn-chatgpt" style="background: #ff9800; font-size: 18px; padding: 15px 30px;">';
+            helpHtml += '🚀 פתח מבדק כתיב עכשיו';
+            helpHtml += '</a>';
+            helpHtml += '</div>';
+            helpHtml += '</div>';
+            
+            // 2. מורפיקס - המילון המוביל
+            helpHtml += '<div style="background: white; padding: 20px; border-radius: 12px; margin: 20px 0; border: 2px solid #2196f3; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">';
+            helpHtml += '<h6 style="color: #1976d2; margin-bottom: 15px; font-size: 1.2em;">📖 מורפיקס - המילון הישראלי המוביל</h6>';
+            helpHtml += '<p style="margin-bottom: 15px; color: #333; line-height: 1.6;">המילון הכי מהימן בישראל. מושלם לבדיקת מילים ספציפיות וכללי כתיב.</p>';
+            
+            helpHtml += '<div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; border-right: 4px solid #2196f3;">';
+            helpHtml += '<h7 style="color: #1976d2; font-weight: bold; display: block; margin-bottom: 10px;">🔍 איך להשתמש:</h7>';
+            helpHtml += '<ul style="margin: 0; padding-right: 20px; color: #333;">';
+            helpHtml += '<li>חפש כל מילה שאתה לא בטוח בכתיבה שלה</li>';
+            helpHtml += '<li>בדוק את הכתיב הנכון והמשמעות</li>';
+            helpHtml += '<li>קרא דוגמאות לשימוש נכון</li>';
+            helpHtml += '</ul>';
+            helpHtml += '</div>';
+            
+            helpHtml += '<div style="text-align: center; margin: 15px 0;">';
+            helpHtml += '<a href="https://www.morfix.co.il/" target="_blank" class="btn-chatgpt" style="background: #2196f3; font-size: 16px; padding: 12px 25px;">';
+            helpHtml += '📚 פתח מורפיקס';
+            helpHtml += '</a>';
+            helpHtml += '</div>';
+            helpHtml += '</div>';
+            
+            // 3. האקדמיה ללשון העברית
+            helpHtml += '<div style="background: white; padding: 20px; border-radius: 12px; margin: 20px 0; border: 2px solid #6f42c1; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">';
+            helpHtml += '<h6 style="color: #6f42c1; margin-bottom: 15px; font-size: 1.2em;">🎓 האקדמיה ללשון העברית</h6>';
+            helpHtml += '<p style="margin-bottom: 15px; color: #333; line-height: 1.6;">הגוף הרשמי לקביעת כללי הכתיב בעברית. המקור הסמכותי ביותר!</p>';
+            
+            helpHtml += '<div style="background: #f3e5ff; padding: 15px; border-radius: 8px; margin: 15px 0; border-right: 4px solid #6f42c1;">';
+            helpHtml += '<h7 style="color: #6f42c1; font-weight: bold; display: block; margin-bottom: 10px;">⚖️ מתי להשתמש:</h7>';
+            helpHtml += '<ul style="margin: 0; padding-right: 20px; color: #333;">';
+            helpHtml += '<li>כשיש ספק בכללי דקדוק מסובכים</li>';
+            helpHtml += '<li>לבירור כתיב של מילים זרות בעברית</li>';
+            helpHtml += '<li>להבנת כללי פיסוק נכונים</li>';
+            helpHtml += '</ul>';
+            helpHtml += '</div>';
+            
+            helpHtml += '<div style="text-align: center; margin: 15px 0;">';
+            helpHtml += '<a href="https://hebrew-academy.org.il/" target="_blank" class="btn-chatgpt" style="background: #6f42c1; font-size: 16px; padding: 12px 25px;">';
+            helpHtml += '🏛️ פתח אתר האקדמיה';
+            helpHtml += '</a>';
+            helpHtml += '</div>';
+            helpHtml += '</div>';
+            
+            helpHtml += '</div>';
+            
+            // צ'אט GPT עם הטקסט המלא
+            helpHtml += '<div style="background: #f0f8ff; padding: 25px; border-radius: 15px; margin: 20px 0; border: 3px solid #007bff;">';
+            helpHtml += '<h5 style="color: #0056b3; margin-bottom: 20px; text-align: center; font-size: 1.3em;">🤖 בדיקה מתקדמת עם צ\'אט GPT</h5>';
+            
+            // הכנת שאילתה מפורטת לצ'אט GPT
+            const truncatedText = fullText.length > 800 ? fullText.substring(0, 800) + '...' : fullText;
+            
+            const detailedQuery = `שלום! אני תלמיד ואני צריך עזרה בבדיקת שגיאות כתיב ודקדוק בחיבור שכתבתי בעברית.
 
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    // הוסף שגיאות מ-LanguageTool לשגיאות הקיימות
-                    data.matches.forEach(match => {
-                        const errorWord = text.substring(match.offset, match.offset + match.length);
-                        const suggestion = match.replacements.length > 0 ? match.replacements[0].value : 'אין הצעת תיקון';
-                        
-                        // בדוק שהשגיאה לא קיימת כבר
-                        const existingError = errors.find(e => e.word === errorWord);
-                        if (!existingError) {
-                            errors.push({
-                                word: errorWord,
-                                suggestion: suggestion,
-                                type: match.rule.category.id === 'TYPOS' ? 'שגיאת כתיב (AI)' : 'שגיאת תחביר (AI)',
-                                message: match.message || 'שגיאה שזוהתה על ידי AI',
-                                context: match.context ? match.context.text : ''
-                            });
-                        }
-                    });
-                }
-            } catch (error) {
-                console.log('בעיה בחיבור לשירות AI, משתמש בבדיקה מקומית בלבד');
-                // אם יש בעיה עם השירות, נשתמש רק בבדיקה המקומית שכבר ביצענו
+הטקסט שלי (${totalWords} מילים):
+"${truncatedText}"
+
+אתה יכול לעזור לי עם:
+1. 🔍 זיהוי שגיאות כתיב וכתיבה מחדש נכונה
+2. 📝 בדיקת דקדוק ותחביר
+3. ✅ בדיקת פיסוק וסימני הקראה
+4. 💡 הצעות לשיפור הניסוח והסגנון
+5. 📚 הסבר על חוקי כתיב שנעשה בהם שגיאות
+
+אשמח אם תכתוב בצורה ברורה ומובנה עם הסברים פשוטים. תודה רבה!`;
+            
+            const chatGPTQuery = encodeURIComponent(detailedQuery);
+            const chatGPTUrl = 'https://chat.openai.com/?q=' + chatGPTQuery;
+            
+            helpHtml += '<div style="background: white; padding: 20px; border-radius: 12px; border: 2px dashed #007bff;">';
+            helpHtml += '<h6 style="color: #0056b3; margin-bottom: 15px; font-size: 1.1em;">🎯 בדיקה אישית וחכמה</h6>';
+            helpHtml += '<p style="margin-bottom: 20px; color: #333; line-height: 1.6;">GPT יקבל את <strong>כל הטקסט שלך</strong> ויבדוק אותו במקצועיות רבה. זו הדרך הכי טובה לקבל עזרה מותאמת אישית!</p>';
+            
+            helpHtml += '<div style="background: #e8f4fd; padding: 20px; border-radius: 10px; margin-bottom: 20px;">';
+            helpHtml += '<h7 style="color: #0056b3; font-weight: bold; display: block; margin-bottom: 15px; font-size: 1.1em;">✨ מה GPT יעשה עבורך:</h7>';
+            helpHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
+            
+            helpHtml += '<div style="background: white; padding: 15px; border-radius: 8px; border-right: 3px solid #28a745;">';
+            helpHtml += '<strong style="color: #28a745;">🔍 זיהוי שגיאות</strong><br>';
+            helpHtml += '<small style="color: #666;">כל שגיאת כתיב ודקדוק</small>';
+            helpHtml += '</div>';
+            
+            helpHtml += '<div style="background: white; padding: 15px; border-radius: 8px; border-right: 3px solid #ff9800;">';
+            helpHtml += '<strong style="color: #ff9800;">📝 הסברים</strong><br>';
+            helpHtml += '<small style="color: #666;">למה כל שגיאה שגויה</small>';
+            helpHtml += '</div>';
+            
+            helpHtml += '<div style="background: white; padding: 15px; border-radius: 8px; border-right: 3px solid #2196f3;">';
+            helpHtml += '<strong style="color: #2196f3;">✅ תיקונים</strong><br>';
+            helpHtml += '<small style="color: #666;">הכתיב הנכון לכל מילה</small>';
+            helpHtml += '</div>';
+            
+            helpHtml += '<div style="background: white; padding: 15px; border-radius: 8px; border-right: 3px solid #6f42c1;">';
+            helpHtml += '<strong style="color: #6f42c1;">💡 שיפורים</strong><br>';
+            helpHtml += '<small style="color: #666;">הצעות לניסוח טוב יותר</small>';
+            helpHtml += '</div>';
+            
+            helpHtml += '</div>';
+            helpHtml += '</div>';
+            
+            helpHtml += '<div style="text-align: center;">';
+            helpHtml += '<a href="' + chatGPTUrl + '" target="_blank" class="btn-chatgpt" style="font-size: 18px; padding: 15px 30px;">';
+            helpHtml += '🚀 בדוק את הטקסט שלי ב-GPT';
+            helpHtml += '</a>';
+            helpHtml += '</div>';
+            helpHtml += '</div>';
+            
+            helpHtml += '</div>';
+            
+            // הוראות מפורטות
+            helpHtml += '<div style="background: #fff3cd; padding: 25px; border-radius: 15px; margin: 20px 0; border: 3px solid #ffc107;">';
+            helpHtml += '<h5 style="color: #856404; margin-bottom: 20px; text-align: center; font-size: 1.2em;">📋 איך לבדוק את הטקסט שלך - המדריך המלא</h5>';
+            
+            helpHtml += '<div style="background: white; padding: 20px; border-radius: 10px; border: 2px solid #ffc107;">';
+            helpHtml += '<h6 style="color: #856404; margin-bottom: 15px;">🎯 השלבים המומלצים:</h6>';
+            helpHtml += '<ol style="padding-right: 25px; color: #856404; line-height: 2; font-size: 15px;">';
+            helpHtml += '<li><strong>התחל עם מבדק כתיב:</strong> פתח את מבדק כתיב, העתק את כל הטקסט ובדוק שגיאות בסיסיות</li>';
+            helpHtml += '<li><strong>השלם עם GPT:</strong> פתח את צ\'אט GPT לבדיקה מקיפה וחכמה של כל הטקסט</li>';
+            helpHtml += '<li><strong>בדוק מילים ספציפיות במורפיקס:</strong> אם יש מילים שאתה לא בטוח בהן</li>';
+            helpHtml += '<li><strong>תקן בטקסט המקורי:</strong> חזור לכאן ותקן את כל השגיאות ששגיאות שזוהו</li>';
+            helpHtml += '<li><strong>בדוק שוב:</strong> לחץ על "בדוק שגיאות כתיב" כדי לוודא שהכל תוקן</li>';
+            helpHtml += '<li><strong>צור מתווה:</strong> רק אחרי שאין שגיאות - צור את המתווה</li>';
+            helpHtml += '</ol>';
+            helpHtml += '</div>';
+            
+            helpHtml += '<div style="background: #ffeaa7; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center;">';
+            helpHtml += '<strong style="color: #856404;">💡 עצה חשובה:</strong> אל תסתפק בכלי אחד! השתמש במספר כלים כדי לוודא שהטקסט מושלם';
+            helpHtml += '</div>';
+            helpHtml += '</div>';
+            
+            // אזהרה חשובה
+            helpHtml += '<div style="background: #f8d7da; padding: 20px; border-radius: 10px; margin: 20px 0; border: 3px solid #dc3545; text-align: center;">';
+            helpHtml += '<h6 style="color: #721c24; margin-bottom: 10px; font-size: 1.1em;">⚠️ חשוב מאוד!</h6>';
+            helpHtml += '<p style="color: #721c24; margin: 0; line-height: 1.6;">לא תוכל ליצור מתווה עד שתבדוק ותתקן את כל שגיאות הכתיב. מטרת המערכת היא לעזור לך להגיש חיבור מושלם!</p>';
+            helpHtml += '</div>';
+
+            helpDiv.innerHTML = helpHtml;
+            
+            const activeCard = document.querySelector('.step-content.active .card');
+            if (activeCard) {
+                activeCard.appendChild(helpDiv);
             }
-
-            return errors;
         }
 
         function checkSpellingLocal(text) {
             const errors = [];
             
-            // מילון מתקדם של שגיאות כתיב נפוצות בעברית בלבד
-            const spellingErrors = {
-                // שגיאות כתיב נפוצות - מילים בודדות
+            // מילון מורחב של שגיאות כתיב נפוצות מאוד בעברית - רק שגיאות אמיתיות!
+            const commonErrors = {
+                // שגיאות בסיסיות נפוצות מאוד
                 'בעייה': 'בעיה',
+                'בעיות': 'בעיות',
                 'שיכבה': 'שכבה',
+                'שיחבה': 'שכבה',
+                'שיבה': 'שכבה',
                 'הולכ': 'הולך',
-                'באו': 'בואו',
-                'איפוא': 'אפוא',
-                'בכלל': 'בכלל',
-                'מכיון': 'מכיוון',
-                'בעיקר': 'בעיקר',
-                'שורש': 'שורש',
                 'זכרון': 'זיכרון',
                 'זכרונות': 'זיכרונות',
-                'עצוב': 'עצוב',
-                'עצוב': 'עצוב',
-                'חייב': 'חייב',
-                'תמיד': 'תמיד',
-                'אולי': 'אולי',
-                'כנראה': 'כנראה',
-                'בוודאי': 'בוודאי',
-                'ממש': 'ממש',
-                'יחד': 'יחד',
-                'לבד': 'לבד',
-                'כמעט': 'כמעט',
-                'בדיוק': 'בדיוק',
-                'לגמרי': 'לגמרי',
-                'בחלק': 'בחלק',
-                'בגלל': 'בגלל',
-                'למרות': 'למרות',
-                'בזכות': 'בזכות',
-                'בעקבות': 'בעקבות',
-                'במקום': 'במקום',
-                'בזמן': 'בזמן',
-                'אחרי': 'אחרי',
-                'לפני': 'לפני',
-                'במהלך': 'במהלך',
-                'בעת': 'בעת',
-                'כאשר': 'כאשר',
-                'בזמן': 'בזמן',
-                'רגע': 'רגע',
-                'דקה': 'דקה',
-                'שעה': 'שעה',
-                'יום': 'יום',
-                'שבוע': 'שבוע',
-                'חודש': 'חודש',
-                'שנה': 'שנה',
-                'זמן': 'זמן',
-                'עבר': 'עבר',
-                'הווה': 'הווה',
-                'עתיד': 'עתיד',
-                'מחר': 'מחר',
-                'אתמול': 'אתמול',
-                'היום': 'היום',
-                'השבוע': 'השבוע',
-                'החודש': 'החודש',
-                'השנה': 'השנה',
-                'בית': 'בית',
-                'בתים': 'בתים',
-                'בית ספר': 'בית ספר',
-                'בית חולים': 'בית חולים',
-                'בית כנסת': 'בית כנסת',
-                'בית קפה': 'בית קפה',
-                'משפחה': 'משפחה',
-                'משפחות': 'משפחות',
-                'הורים': 'הורים',
-                'ילדים': 'ילדים',
-                'ילדה': 'ילדה',
-                'ילד': 'ילד',
-                'בן': 'בן',
-                'בת': 'בת',
-                'אב': 'אב',
-                'אם': 'אם',
-                'אח': 'אח',
-                'אחות': 'אחות',
-                'סבא': 'סבא',
-                'סבתא': 'סבתא',
-                'דוד': 'דוד',
-                'דודה': 'דודה',
-                'חבר': 'חבר',
-                'חברה': 'חברה',
-                'חברים': 'חברים',
-                'חברות': 'חברות',
-                'ספר': 'ספר',
-                'ספרים': 'ספרים',
-                'עיתון': 'עיתון',
-                'עיתונים': 'עיתונים',
-                'מגזין': 'מגזין',
-                'מחשב': 'מחשב',
-                'מחשבים': 'מחשבים',
-                'טלפון': 'טלפון',
-                'טלפונים': 'טלפונים',
-                'רכב': 'רכב',
-                'רכבים': 'רכבים',
-                'אוטובוס': 'אוטובוס',
-                'אוטובוסים': 'אוטובוסים',
-                'רכבת': 'רכבת',
-                'רכבות': 'רכבות',
-                'מטוס': 'מטוס',
-                'מטוסים': 'מטוסים',
-                'אוניה': 'אוניה',
-                'אוניות': 'אוניות',
-                'בגד': 'בגד',
-                'בגדים': 'בגדים',
-                'חולצה': 'חולצה',
-                'חולצות': 'חולצות',
-                'מכנסיים': 'מכנסיים',
-                'שמלה': 'שמלה',
-                'שמלות': 'שמלות',
-                'נעל': 'נעל',
-                'נעליים': 'נעליים',
-                'גרב': 'גרב',
-                'גרביים': 'גרביים',
-                'מעיל': 'מעיל',
-                'מעילים': 'מעילים',
-                'כובע': 'כובע',
-                'כובעים': 'כובעים',
-                'משקפיים': 'משקפיים',
-                'שעון': 'שעון',
-                'שעונים': 'שעונים',
-                'תיק': 'תיק',
-                'תיקים': 'תיקים',
-                'מחברת': 'מחברת',
-                'מחברות': 'מחברות',
-                'עיפרון': 'עיפרון',
-                'עיפרונות': 'עיפרונות',
-                'עט': 'עט',
-                'עטים': 'עטים',
-                'מחק': 'מחק',
-                'מחקים': 'מחקים',
-                'סרגל': 'סרגל',
-                'סרגלים': 'סרגלים',
-                'מספריים': 'מספריים',
-                'דבק': 'דבק',
-                'נייר': 'נייר',
-                'ניירות': 'ניירות',
-                'שולחן': 'שולחן',
-                'שולחנות': 'שולחנות',
-                'כיסא': 'כיסא',
-                'כיסאות': 'כיסאות',
-                'מיטה': 'מיטה',
-                'מיטות': 'מיטות',
-                'ארון': 'ארון',
-                'ארונות': 'ארונות',
-                'חלון': 'חלון',
-                'חלונות': 'חלונות',
-                'דלת': 'דלת',
-                'דלתות': 'דלתות',
-                'קיר': 'קיר',
-                'קירות': 'קירות',
-                'תקרה': 'תקרה',
-                'תקרות': 'תקרות',
-                'רצפה': 'רצפה',
-                'רצפות': 'רצפות',
-                'מטבח': 'מטבח',
-                'מטבחים': 'מטבחים',
-                'חדר': 'חדר',
-                'חדרים': 'חדרים',
-                'סלון': 'סלון',
-                'סלונים': 'סלונים',
-                'חדר שינה': 'חדר שינה',
-                'חדרי שינה': 'חדרי שינה',
-                'חדר אמבטיה': 'חדר אמבטיה',
-                'חדרי אמבטיה': 'חדרי אמבטיה',
-                'מרפסת': 'מרפסת',
-                'מרפסות': 'מרפסות',
-                'גינה': 'גינה',
-                'גינות': 'גינות',
-                'עץ': 'עץ',
-                'עצים': 'עצים',
-                'פרח': 'פרח',
-                'פרחים': 'פרחים',
-                'דשא': 'דשא',
-                'דשאים': 'דשאים',
-                'שמש': 'שמש',
-                'ירח': 'ירח',
-                'כוכב': 'כוכב',
-                'כוכבים': 'כוכבים',
-                'שמיים': 'שמיים',
-                'ענן': 'ענן',
-                'עננים': 'עננים',
-                'גשם': 'גשם',
-                'גשמים': 'גשמים',
-                'רוח': 'רוח',
-                'רוחות': 'רוחות',
-                'סער': 'סער',
-                'סערות': 'סערות',
-                'שלג': 'שלג',
-                'שלגים': 'שלגים',
-                'קרח': 'קרח',
-                'חום': 'חום',
-                'קור': 'קור',
-                'אוכל': 'אוכל',
-                'מזון': 'מזון',
-                'לחם': 'לחם',
-                'לחמים': 'לחמים',
-                'חלב': 'חלב',
-                'גבינה': 'גבינה',
-                'גבינות': 'גבינות',
-                'ביצה': 'ביצה',
-                'ביצים': 'ביצים',
-                'בשר': 'בשר',
-                'דג': 'דג',
-                'דגים': 'דגים',
-                'עוף': 'עוף',
-                'עופות': 'עופות',
-                'ירק': 'ירק',
-                'ירקות': 'ירקות',
-                'פרי': 'פרי',
-                'פירות': 'פירות',
-                'תפוח': 'תפוח',
-                'תפוחים': 'תפוחים',
-                'בננה': 'בננה',
-                'בננות': 'בננות',
-                'אגס': 'אגס',
-                'אגסים': 'אגסים',
-                'תפוז': 'תפוז',
-                'תפוזים': 'תפוזים',
-                'לימון': 'לימון',
-                'לימונים': 'לימונים',
-                'גזר': 'גזר',
-                'גזרים': 'גזרים',
-                'עגבניה': 'עגבניה',
-                'עגבניות': 'עגבניות',
-                'מלפפון': 'מלפפון',
-                'מלפפונים': 'מלפפונים',
-                'בצל': 'בצל',
-                'בצלים': 'בצלים',
-                'שום': 'שום',
-                'פלפל': 'פלפל',
-                'פלפלים': 'פלפלים',
-                'מים': 'מים',
-                'מיץ': 'מיץ',
-                'מיצים': 'מיצים',
-                'קפה': 'קפה',
-                'תה': 'תה',
-                'שוקולד': 'שוקולד',
-                'שוקולדים': 'שוקולדים',
-                'עוגה': 'עוגה',
-                'עוגות': 'עוגות',
-                'ממתק': 'ממתק',
-                'ממתקים': 'ממתקים',
-                'רופא': 'רופא',
-                'רופאים': 'רופאים',
-                'רופאה': 'רופאה',
-                'רופאות': 'רופאות',
-                'אחות': 'אחות',
-                'אחיות': 'אחיות',
-                'מורה': 'מורה',
-                'מורים': 'מורים',
-                'מורות': 'מורות',
-                'תלמיד': 'תלמיד',
-                'תלמידים': 'תלמידים',
-                'תלמידה': 'תלמידה',
-                'תלמידות': 'תלמידות',
-                'סטודנט': 'סטודנט',
-                'סטודנטים': 'סטודנטים',
-                'סטודנטית': 'סטודנטית',
-                'סטודנטיות': 'סטודנטיות',
-                'פרופסור': 'פרופסור',
-                'פרופסורים': 'פרופסורים',
-                'דוקטור': 'דוקטור',
-                'דוקטורים': 'דוקטורים',
-                'עורך דין': 'עורך דין',
-                'עורכי דין': 'עורכי דין',
-                'מהנדס': 'מהנדס',
-                'מהנדסים': 'מהנדסים',
-                'מהנדסת': 'מהנדסת',
-                'מהנדסות': 'מהנדסות',
-                'חשבון': 'חשבון',
-                'חשבונות': 'חשבונות',
-                'מתמטיקה': 'מתמטיקה',
-                'פיזיקה': 'פיזיקה',
-                'כימיה': 'כימיה',
-                'ביולוגיה': 'ביולוגיה',
-                'היסטוריה': 'היסטוריה',
-                'גיאוגרפיה': 'גיאוגרפיה',
-                'ספרות': 'ספרות',
-                'עברית': 'עברית',
-                'אנגלית': 'אנגלית',
-                'צרפתית': 'צרפתית',
-                'גרמנית': 'גרמנית',
-                'ספרדית': 'ספרדית',
-                'רוסית': 'רוסית',
-                'ערבית': 'ערבית',
-                'אמנות': 'אמנות',
-                'מוזיקה': 'מוזיקה',
-                'ספורט': 'ספורט',
-                'כדורגל': 'כדורגל',
-                'כדורסל': 'כדורסל',
-                'טניס': 'טניס',
-                'שחייה': 'שחייה',
-                'ריצה': 'ריצה',
-                'הליכה': 'הליכה',
-                'רכיבה': 'רכיבה',
-                'משחק': 'משחק',
-                'משחקים': 'משחקים',
-                'מחשב': 'מחשב',
-                'מחשבים': 'מחשבים',
-                'טלוויזיה': 'טלוויזיה',
-                'טלוויזיות': 'טלוויזיות',
-                'רדיו': 'רדיו',
-                'רדיואים': 'רדיואים',
-                'סרט': 'סרט',
-                'סרטים': 'סרטים',
-                'תוכנית': 'תוכנית',
-                'תוכניות': 'תוכניות',
-                'שיר': 'שיר',
-                'שירים': 'שירים',
-                'זמר': 'זמר',
-                'זמרים': 'זמרים',
-                'זמרת': 'זמרת',
-                'זמרות': 'זמרות',
-                'ציור': 'ציור',
-                'ציורים': 'ציורים',
-                'צילום': 'צילום',
-                'צילומים': 'צילומים',
-                'תמונה': 'תמונה',
-                'תמונות': 'תמונות',
-                'צבע': 'צבע',
-                'צבעים': 'צבעים',
-                'אדום': 'אדום',
-                'כחול': 'כחול',
-                'ירוק': 'ירוק',
-                'צהוב': 'צהוב',
-                'סגול': 'סגול',
-                'כתום': 'כתום',
-                'ורוד': 'ורוד',
-                'חום': 'חום',
-                'שחור': 'שחור',
-                'לבן': 'לבן',
-                'אפור': 'אפור',
-                'כסף': 'כסף',
-                'זהב': 'זהב',
-                'ברונזה': 'ברונזה',
-                'מספר': 'מספר',
-                'מספרים': 'מספרים',
-                'אחד': 'אחד',
-                'שניים': 'שניים',
-                'שלושה': 'שלושה',
-                'ארבעה': 'ארבעה',
-                'חמישה': 'חמישה',
-                'שישה': 'שישה',
-                'שבעה': 'שבעה',
-                'שמונה': 'שמונה',
-                'תשעה': 'תשעה',
-                'עשרה': 'עשרה',
-                'עשרים': 'עשרים',
-                'שלושים': 'שלושים',
-                'ארבעים': 'ארבעים',
-                'חמישים': 'חמישים',
-                'שישים': 'שישים',
-                'שבעים': 'שבעים',
-                'שמונים': 'שמונים',
-                'תשעים': 'תשעים',
-                'מאה': 'מאה',
-                'אלף': 'אלף',
-                'מיליון': 'מיליון'
-            };
-
-            // בדיקת שגיאות כתיב נפוצות
-            Object.keys(spellingErrors).forEach(wrongWord => {
-                const regex = new RegExp('\\b' + wrongWord.replace(/[.*+?^${}()|[\]\\]/g, '\\        function checkSpellingLocal(text) {
-            const errors = [];
-            
-            // מילון מורחב של שגיאות כתיב נפוצות בעברית
-            const commonErrors = {
-                // שגיאות כתיב נפוצות
-                'בעייה': 'בעיה',
-                'שיכבה': 'שכבה', 
-                'הולכ': 'הולך',
-                'באו': 'בואו',
-                'שאלתי': 'שאלתי',
-                'ענתי': 'עניתי',
-                'כתיבתי': 'כתבתי',
-                'קראתי': 'קראתי',
-                'שמעתי': 'שמעתי',
-                'הבנתי': 'הבנתי',
-                'ראיתי': 'ראיתי',
-                'עשיתי': 'עשיתי',
-                'אמרתי': 'אמרתי',
-                'נתתי': 'נתתי',
-                'לקחתי': 'לקחתי',
-                'קניתי': 'קניתי',
-                'מכרתי': 'מכרתי',
-                'הלכתי': 'הלכתי',
-                'באתי': 'באתי',
-                'יצאתי': 'יצאתי',
-                'נכנסתי': 'נכנסתי',
-                'ישבתי': 'ישבתי',
-                'עמדתי': 'עמדתי',
-                'רצתי': 'רצתי',
-                'שיחקתי': 'שיחקתי',
-                'למדתי': 'למדתי',
-                'עבדתי': 'עבדתי',
-                'אהבתי': 'אהבתי',
-                'שנאתי': 'שנאתי',
-                'פחדתי': 'פחדתי',
-                'שמחתי': 'שמחתי',
-                'בכיתי': 'בכיתי',
-                'צחקתי': 'צחקתי',
-                'חשבתי': 'חשבתי',
-                'זכרתי': 'זכרתי',
-                'שכחתי': 'שכחתי',
-                'הרגשתי': 'הרגשתי',
-                'התחלתי': 'התחלתי',
-                'סיימתי': 'סיימתי',
-                'המשכתי': 'המשכתי',
-                'עצרתי': 'עצרתי',
-                'חזרתי': 'חזרתי',
-                'הגעתי': 'הגעתי',
-                'עזבתי': 'עזבתי',
-                'נשארתי': 'נשארתי',
-                'חיכיתי': 'חיכיתי',
-                'קיוויתי': 'קיוויתי',
-                'רציתי': 'רציתי',
-                'יכולתי': 'יכולתי',
-                'הייתי צריך': 'הייתי צריך',
-                'הייתי חייב': 'הייתי חייב',
-                'הייתי אמור': 'הייתי אמור',
-                'הייתי רוצה': 'הייתי רוצה',
-                'הייתי יכול': 'הייתי יכול',
-                'הייתי אוהב': 'הייתי אוהב',
-                'הייתי מקווה': 'הייתי מקווה',
-                'הייתי חושב': 'הייתי חושב',
-                'הייתי מאמין': 'הייתי מאמין',
-                'הייתי מרגיש': 'הייתי מרגיש',
-                'הייתי מבין': 'הייתי מבין',
-                'הייתי יודע': 'הייתי יודע',
-                'הייתי זוכר': 'הייתי זוכר',
-                'הייתי שוכח': 'הייתי שוכח',
-                'הייתי לומד': 'הייתי לומד',
-                'הייתי עובד': 'הייתי עובד',
-                'הייתי משחק': 'הייתי משחק',
-                'הייתי קורא': 'הייתי קורא',
-                'הייתי כותב': 'הייתי כותב',
-                'הייתי מדבר': 'הייתי מדבר',
-                'הייתי שותק': 'הייתי שותק',
-                'הייתי צועק': 'הייתי צועק',
-                'הייתי לוחש': 'הייתי לוחש',
-                'הייתי שר': 'הייתי שר',
-                'הייתי רוקד': 'הייתי רוקד',
-                'הייתי בוכה': 'הייתי בוכה',
-                'הייתי צוחק': 'הייתי צוחק',
-                'הייתי ישן': 'הייתי ישן',
-                'הייתי ער': 'הייתי ער',
-                'הייתי עייף': 'הייתי עייף',
-                'הייתי בריא': 'הייתי בריא',
-                'הייתי חולה': 'הייתי חולה',
-                'הייתי רעב': 'הייתי רעב',
-                'הייתי צמא': 'הייתי צמא',
-                'הייתי קר': 'הייתי קר',
-                'הייתי חם': 'הייתי חם',
-                'הייתי מאושר': 'הייתי מאושר',
-                'הייתי עצוב': 'הייתי עצוב',
-                'הייתי כועס': 'הייתי כועס',
-                'הייתי רגוע': 'הייתי רגוע',
-                'הייתי לחוץ': 'הייתי לחוץ',
-                'הייתי מודאג': 'הייתי מודאג',
-                'הייתי בטוח': 'הייתי בטוח',
-                'הייתי חושש': 'הייתי חושש',
-                'הייתי מפחד': 'הייתי מפחד',
-                'הייתי אמיץ': 'הייתי אמיץ',
-                'הייתי חזק': 'הייתי חזק',
-                'הייתי חלש': 'הייתי חלש',
-                'הייתי גדול': 'הייתי גדול',
-                'הייתי קטן': 'הייתי קטן',
-                'הייתי גבוה': 'הייתי גבוה',
-                'הייתי נמוך': 'הייתי נמוך',
-                'הייתי יפה': 'הייתי יפה',
-                'הייתי מכוער': 'הייתי מכוער',
-                'הייתי חכם': 'הייתי חכם',
-                'הייתי טיפש': 'הייתי טיפש',
-                'הייתי מהיר': 'הייתי מהיר',
-                'הייתי איטי': 'הייתי איט') + '\\b', 'gi');
-                const matches = text.match(regex);
-                if (matches) {
-                    matches.forEach(() => {
-                        errors.push({
-                            word: wrongWord,
-                            suggestion: spellingErrors[wrongWord],
-                            type: 'שגיאת כתיב',
-                            message: 'מילה עם שגיאת כתיב נפוצה בעברית'
-                        });
-                    });
-                }
-            });
-
-            // בדיקת חזרות מיותרות על מילים (רק אם זה שגיאת כתיב אמיתית)
-            const words = text.split(/\s+/);
-            for (let i = 0; i < words.length - 1; i++) {
-                const cleanWord1 = words[i].replace(/[^\u0590-\u05FF\u0041-\u005A\u0061-\u007A]/g, '');
-                const cleanWord2 = words[i + 1].replace(/[^\u0590-\u05FF\u0041-\u005A\u0061-\u007A]/g, '');
-                
-                if (cleanWord1.toLowerCase() === cleanWord2.toLowerCase() && cleanWord1.length > 3) {
-                    errors.push({
-                        word: cleanWord1,
-                        suggestion: 'הסר את החזרה המיותרת',
-                        type: 'חזרה מיותרת',
-                        message: 'מילה חוזרת פעמיים ברצף - זוהי שגיאת כתיב'
-                    });
-                }
-            }
-
-            return errors;
-        }י',
-                'הייתי זהיר': 'הייתי זהיר',
-                'הייתי פזיז': 'הייתי פזיז',
-                'הייתי סבלני': 'הייתי סבלני',
-                'הייתי חסר סבלנות': 'הייתי חסר סבלנות',
-                'הייתי נדיב': 'הייתי נדיב',
-                'הייתי קמצן': 'הייתי קמצן',
-                'הייתי טוב': 'הייתי טוב',
-                'הייתי רע': 'הייתי רע',
-                'הייתי צודק': 'הייתי צודק',
-                'הייתי טועה': 'הייתי טועה',
-                'הייתי נכון': 'הייתי נכון',
-                'הייתי שגוי': 'הייתי שגוי',
-                'הייתי אמיתי': 'הייתי אמיתי',
-                'הייתי מזויף': 'הייתי מזויף',
-                'הייתי כנה': 'הייתי כנה',
-                'הייתי שקרן': 'הייתי שקרן',
-                'הייתי ישר': 'הייתי ישר',
-                'הייתי עקום': 'הייתי עקום',
-                'הייתי פתוח': 'הייתי פתוח',
-                'הייתי סגור': 'הייתי סגור',
-                'הייתי חופשי': 'הייתי חופשי',
-                'הייתי כלוא': 'הייתי כלוא',
-                'הייתי עצמאי': 'הייתי עצמאי',
-                'הייתי תלוי': 'הייתי תלוי',
-                'הייתי ביתי': 'הייתי בבית',
-                'הייתי בחוץ': 'הייתי בחוץ',
-                'הייתי בפנים': 'הייתי בפנים',
-                'הייתי למעלה': 'הייתי למעלה',
-                'הייתי למטה': 'הייתי למטה',
-                'הייתי ליד': 'הייתי ליד',
-                'הייתי רחוק': 'הייתי רחוק',
-                'הייתי קרוב': 'הייתי קרוב',
-                'הייתי כאן': 'הייתי כאן',
-                'הייתי שם': 'הייתי שם',
-                'הייתי עם': 'הייתי עם',
-                'הייתי בלי': 'הייתי בלי',
-                'הייתי לבד': 'הייתי לבד',
-                'הייתי ביחד': 'הייתי ביחד',
-                'הייתי קודם': 'הייתי קודם',
-                'הייתי אחר כך': 'הייתי אחר כך',
-                'הייתי עכשיו': 'הייתי עכשיו',
-                'הייתי אז': 'הייתי אז',
-                'הייתי פעם': 'הייתי פעם',
-                'הייתי תמיד': 'הייתי תמיד',
-                'הייתי לפעמים': 'הייתי לפעמים',
-                'הייתי לעולם': 'הייתי לעולם',
-                'הייתי אף פעם': 'הייתי אף פעם',
-                'הייתי כל הזמן': 'הייתי כל הזמן',
-                'הייתי הרבה': 'הייתי הרבה',
-                'הייתי מעט': 'הייתי מעט',
-                'הייתי די': 'הייתי די',
-                'הייתי מדי': 'הייתי מדי',
-                'הייתי יותר': 'הייתי יותר',
-                'הייתי פחות': 'הייתי פחות',
-                'הייתי הכי': 'הייתי הכי',
-                'הייתי ככה': 'הייתי ככה',
-                'הייתי כך': 'הייתי כך',
-                'הייתי כמו': 'הייתי כמו',
-                'הייתי בגלל': 'הייתי בגלל',
-                'הייתי למרות': 'הייתי למרות',
-                'הייתי בזכות': 'הייתי בזכות',
-                'הייתי בעקבות': 'הייתי בעקבות',
-                'הייתי לכן': 'הייתי לכן',
-                'הייתי אז': 'הייתי אז',
-                'הייתי אחרת': 'הייתי אחרת',
-                'הייתי אולי': 'הייתי אולי',
-                'הייתי בוודאי': 'הייתי בוודאי',
-                'הייתי בטח': 'הייתי בטח',
-                'הייתי כנראה': 'הייתי כנראה',
-                'הייתי אמור': 'הייתי אמור',
-                'הייתי צריך': 'הייתי צריך',
-                'הייתי חייב': 'הייתי חייב',
-                'הייתי רשאי': 'הייתי רשאי',
-                'הייתי מותר': 'הייתי מותר',
-                'הייתי אסור': 'הייתי אסור',
-                'בעייה': 'בעיה',
-                'הבעייה': 'הבעיה',
-                'בעיות': 'בעיות',
-                'הבעיות': 'הבעיות',
-                'בעייתי': 'בעייתי',
-                'בעייתית': 'בעייתית',
-                'בעייתיים': 'בעייתיים',
-                'בעייתיות': 'בעייתיות',
                 'איפוא': 'אפוא',
-                'אמרתי': 'אמרתי',
-                'עשיתי': 'עשיתי',
-                'כתבתי': 'כתבתי',
-                'קראתי': 'קראתי',
-                'שמעתי': 'שמעתי',
-                'ראיתי': 'ראיתי',
-                'הלכתי': 'הלכתי',
-                'באתי': 'באתי',
-                'יצאתי': 'יצאתי',
-                'נכנסתי': 'נכנסתי',
-                'ישבתי': 'ישבתי',
-                'עמדתי': 'עמדתי',
-                'רצתי': 'רצתי',
-                'שיחקתי': 'שיחקתי',
-                'למדתי': 'למדתי',
-                'עבדתי': 'עבדתי',
+                'מכיון': 'מכיוון',
+                'באו': 'בואו',
+                
+                // שגיאות בפעלים - הוספת אותיות מיותרות
+                'כתיבתי': 'כתבתי',
+                'קריאתי': 'קראתי',
+                'שמיעתי': 'שמעתי',
+                'למידתי': 'למדתי',
+                'הליכתי': 'הלכתי',
+                'ראיותי': 'ראיתי',
+                'שאילתי': 'שאלתי',
+                'ענתי': 'עניתי',
+                'אכילתי': 'אכלתי',
+                'שתיותי': 'שתיתי',
+                'ישינתי': 'ישנתי',
+                'קימתי': 'קמתי',
+                'שכיבתי': 'שכבתי',
+                'עמידתי': 'עמדתי',
+                'ריצתי': 'רצתי',
+                'משחקתי': 'שיחקתי',
+                'עבודתי': 'עבדתי',
                 'אהבתי': 'אהבתי',
-                'שנאתי': 'שנאתי',
-                'פחדתי': 'פחדתי',
-                'שמחתי': 'שמחתי',
-                'בכיתי': 'בכיתי',
-                'צחקתי': 'צחקתי',
-                'חשבתי': 'חשבתי',
-                'זכרתי': 'זכרתי',
-                'שכחתי': 'שכחתי',
-                'הרגשתי': 'הרגשתי',
-                'התחלתי': 'התחלתי',
-                'סיימתי': 'סיימתי',
-                'המשכתי': 'המשכתי',
-                'עצרתי': 'עצרתי',
-                'חזרתי': 'חזרתי',
-                'הגעתי': 'הגעתי',
-                'עזבתי': 'עזבתי',
-                'נשארתי': 'נשארתי',
-                'חיכיתי': 'חיכיתי',
-                'קיוויתי': 'קיוויתי',
-                'רציתי': 'רציתי',
-                'יכולתי': 'יכולתי',
-                'יש לי': 'יש לי',
-                'אין לי': 'אין לי',
-                'היה לי': 'היה לי',
-                'לא היה לי': 'לא היה לי',
-                'יהיה לי': 'יהיה לי',
-                'לא יהיה לי': 'לא יהיה לי',
-                'הייתי': 'הייתי',
-                'לא הייתי': 'לא הייתי',
-                'אהיה': 'אהיה',
-                'לא אהיה': 'לא אהיה',
-                'שאני': 'שאני',
-                'שאתה': 'שאתה',
-                'שאת': 'שאת',
-                'שהוא': 'שהוא',
-                'שהיא': 'שהיא',
-                'שאנחנו': 'שאנחנו',
-                'שאתם': 'שאתם',
-                'שאתן': 'שאתן',
-                'שהם': 'שהם',
-                'שהן': 'שהן',
-                'עם כל זאת': 'עם כל זאת',
-                'למרות זאת': 'למרות זאת',
-                'בכל זאת': 'בכל זאת',
-                'מכל מקום': 'מכל מקום',
-                'בכל מקרה': 'בכל מקרה',
-                'בכל מצב': 'בכל מצב',
-                'בכל מחיר': 'בכל מחיר',
-                'בכל דרך': 'בכל דרך',
-                'בכל אופן': 'בכל אופן',
-                'בכל פנים': 'בכל פנים',
-                'בכל מובן': 'בכל מובן',
-                'בכל הכבוד': 'בכל הכבוד',
-                'בכל האהבה': 'בכל האהבה',
-                'בכל הלב': 'בכל הלב',
-                'בכל הנשמה': 'בכל הנשמה',
-                'בכל הכוח': 'בכל הכוח',
-                'בכל הרצון': 'בכל הרצון',
-                'בכל החשק': 'בכל החשק',
-                'בכל התשוקה': 'בכל התשוקה',
-                'בכל הנחישות': 'בכל הנחישות',
-                'בכל ההתלהבות': 'בכל ההתלהבות',
-                'בכל ההתרגשות': 'בכל ההתרגשות',
-                'בכל השמחה': 'בכל השמחה',
-                'בכל הצער': 'בכל הצער',
-                'בכל הכאב': 'בכל הכאב',
-                'בכל היגון': 'בכל היגון',
-                'בכל האכזבה': 'בכל האכזבה',
-                'בכל התקווה': 'בכל התקווה',
-                'בכל האמונה': 'בכל האמונה',
-                'בכל הביטחון': 'בכל הביטחון',
-                'בכל הספק': 'בכל הספק',
-                'בכל הפחד': 'בכל הפחד',
-                'בכל החרדה': 'בכל החרדה',
-                'בכל הדאגה': 'בכל הדאגה',
-                'בכל הדאגה': 'בכל הדאגה',
-                'בכל הזהירות': 'בכל הזהירות',
-                'בכל הזריזות': 'בכל הזריזות',
-                'בכל המהירות': 'בכל המהירות',
-                'בכל האיטיות': 'בכל האיטיות',
-                'בכל הסבלנות': 'בכל הסבלנות',
-                'בכל חוסר הסבלנות': 'בכל חוסר הסבלנות',
-                'בכל הרוגע': 'בכל הרוגע',
-                'בכל הלחץ': 'בכל הלחץ',
-                'בכל המתח': 'בכל המתח',
-                'בכל הרגיעות': 'בכל הרגיעות',
-                'בכל הרעש': 'בכל הרעש',
-                'בכל השקט': 'בכל השקט',
-                'בכל הדממה': 'בכל הדממה',
-                'בכל הבלגן': 'בכל הבלגן',
-                'בכל הסדר': 'בכל הסדר',
-                'בכל הארגון': 'בכל הארגון',
-                'בכל הכאוס': 'בכל הכאוס',
-                'בכל הבהירות': 'בכל הבהירות',
-                'בכל הבלבול': 'בכל הבלבול',
-                'בכל הבהירות': 'בכל הבהירות',
-                'בכל הערפול': 'בכל הערפול',
-                'בכל הודאות': 'בכל הודאות',
-                'בכל חוסר הוודאות': 'בכל חוסר הוודאות',
-                'בכל הבטחון': 'בכל הבטחון',
-                'בכל חוסר הבטחון': 'בכל חוסר הבטחון',
-                'בכל הביטחון': 'בכל הביטחון',
-                'בכל חוסר הביטחון': 'בכל חוסר הביטחון',
-                'בכל הישירות': 'בכל הישירות',
-                'בכל העקיפות': 'בכל העקיפות',
-                'בכל הפתיחות': 'בכל הפתיחות',
-                'בכל הסגירות': 'בכל הסגירות',
-                'בכל הכנות': 'בכל הכנות',
-                'בכל השקר': 'בכל השקר',
-                'בכל האמת': 'בכל האמת',
-                'בכל השקר': 'בכל השקר',
-                'בכל הישרות': 'בכל הישרות',
-                'בכל העקמומיות': 'בכל העקמומיות',
-                'בכל הטוב': 'בכל הטוב',
-                'בכל הרע': 'בכל הרע',
-                'בכל היושר': 'בכל היושר',
-                'בכל הזדון': 'בכל הזדון',
-                'בכל הטוב': 'בכל הטוב',
-                'בכל הרע': 'בכל הרע',
-                'בכל היפה': 'בכל היפה',
-                'בכל המכוער': 'בכל המכוער',
-                'בכל הנחמד': 'בכל הנחמד',
-                'בכל הלא נחמד': 'בכל הלא נחמד',
-                'בכל הנעים': 'בכל הנעים',
-                'בכל הלא נעים': 'בכל הלא נעים',
-                'בכל הנעים': 'בכל הנעים',
-                'בכל הלא נעים': 'בכל הלא נעים',
-                'בכל הנעים': 'בכל הנעים',
-                'בכל הלא נעים': 'בכל הלא נעים',
-                'בכל הנעים': 'בכל הנעים',
-                'בכל הלא נעים': 'בכל הלא נעים',
-                'בכל הנעים': 'בכל הנעים',
-                'בכל הלא נעים': 'בכל הלא נעים',
-                'בכל הנעים': 'בכל הנעים',
-                'בכל הלא נעים': 'בכל הלא נעים',
-                'בכל הנעים': 'בכל הנעים',
-                'בכל הלא נעים': 'בכל הלא נעים',
-                'בכל הנעים': 'בכל הנעים',
-                'בכל הלא נעים': 'בכל הלא נעים',
-                'בכל הנעים': 'בכל הנעים',
-                'בכל הלא נעים': 'בכל הלא נעים',
-                'בכל הנעים': 'בכל הנעים',
-                'בכל הלא נעים': 'בכל הלא נעים',
-                'בכל הנעים': 'בכל הנעים',
-                'בכל הלא נעים': 'בכל הלא נעים',
-                'בכל הנעים': 'בכל הנעים',
-                'בכל הלא נעים': 'בכל הלא נעים'
+                'שנאותי': 'שנאתי',
+                'פחידתי': 'פחדתי',
+                'שמחותי': 'שמחתי',
+                'בכיותי': 'בכיתי',
+                'צחוקתי': 'צחקתי',
+                'חשיבתי': 'חשבתי',
+                'זכירתי': 'זכרתי',
+                'שכחותי': 'שכחתי',
+                'הרגשותי': 'הרגשתי',
+                'התחלותי': 'התחלתי',
+                'סיומתי': 'סיימתי',
+                'המשכותי': 'המשכתי',
+                'עצירתי': 'עצרתי',
+                'חזירתי': 'חזרתי',
+                'הגעותי': 'הגעתי',
+                'עזיבתי': 'עזבתי',
+                'נשארותי': 'נשארתי',
+                'חכיותי': 'חיכיתי',
+                'קיוותי': 'קיוויתי',
+                'רציותי': 'רציתי',
+                'יכולותי': 'יכולתי',
+                'נתינתי': 'נתתי',
+                'לקיחתי': 'לקחתי',
+                'קניותי': 'קניתי',
+                'מכירתי': 'מכרתי',
+                'סיפורתי': 'סיפרתי',
+                'התקשרותי': 'התקשרתי',
+                'פגישתי': 'פגשתי',
+                'ביקורתי': 'ביקרתי',
+                'טיולתי': 'טיילתי',
+                'נסיעתי': 'נסעתי',
+                
+                // שגיאות עם י נוסף
+                'ביית': 'בית',
+                'בייתי': 'ביתי',
+                'בייתים': 'בתים',
+                'קיול': 'קול',
+                'קיולות': 'קולות',
+                'ייום': 'יום',
+                'ייומים': 'יומים',
+                'לייל': 'ליל',
+                'לייליים': 'לילי',
+                'לייד': 'ליד',
+                'שיירה': 'שירה',
+                'שייר': 'שיר',
+                'שיירים': 'שירים',
+                'מיילה': 'מילה',
+                'מיילים': 'מילים',
+                'נסייעה': 'נסיעה',
+                'נסייעות': 'נסיעות',
+                'חייבור': 'חיבור',
+                'חייבורים': 'חיבורים',
+                'שייחה': 'שיחה',
+                'שייחות': 'שיחות',
+                'בייקור': 'ביקור',
+                'בייקורים': 'ביקורים',
+                'חיינות': 'חנות',
+                'חיינויות': 'חנויות',
+                'בקישה': 'בקשה',
+                'בקישות': 'בקשות',
+                'עיולם': 'עולם',
+                'עיולמות': 'עולמות',
+                'מישפט': 'משפט',
+                'מישפטים': 'משפטים',
+                'אייש': 'איש',
+                'איישים': 'אנשים',
+                'איישה': 'אישה',
+                'אייש': 'אש',
+                'לייש': 'ליש',
+                'ליימוד': 'לימוד',
+                'ליימודים': 'לימודים',
+                'שייטה': 'שיטה',
+                'שייטות': 'שיטות',
+                'בחיירה': 'בחירה',
+                'בחיירות': 'בחירות',
+                'קרייאה': 'קריאה',
+                'קרייאות': 'קריאות',
+                
+                // שגיאות ברבים
+                'עינייים': 'עיניים',
+                'ידייים': 'ידיים',
+                'רגלייים': 'רגליים',
+                'שינייים': 'שיניים',
+                'אוזנייים': 'אוזניים',
+                'שפתייים': 'שפתיים',
+                'אצבעיות': 'אצבעות',
+                'ציפורנייים': 'ציפורניים',
+                'שערייות': 'שערות',
+                
+                // שגיאות נוספות נפוצות
+                'אירע': 'ארע',
+                'אירעה': 'ארעה',
+                'אירעו': 'ארעו',
+                'איחור': 'אחור',
+                'איחוז': 'אחוז',
+                'אימון': 'אמון',
+                'אירוח': 'ארוח',
+                'אישור': 'אשור',
+                'גיבעה': 'גבעה',
+                'גיבעות': 'גבעות',
+                'היכן': 'היכן',
+                'היכנו': 'הכנו',
+                'בלילה': 'בליל',
+                'בליילה': 'בליל',
+                'איתי': 'איתי',
+                'איתך': 'איתך',
+                'איתו': 'איתו',
+                'איתה': 'איתה',
+                'איתנו': 'איתנו',
+                'איתכם': 'איתכם',
+                'איתן': 'איתן',
+                'איתהן': 'איתהן',
+                
+                // שגיאות בזמנים
+                'בוקר': 'בוקר',
+                'ביוקר': 'בוקר',
+                'ציהריים': 'צהריים',
+                'צייהריים': 'צהריים',
+                'עיירב': 'ערב',
+                'לייל': 'ליל',
+                'לייליה': 'לילה',
+                
+                // שגיאות במקומות
+                'בייתי': 'ביתי',
+                'כייתה': 'כיתה',
+                'כייתות': 'כיתות',
+                'חיידר': 'חדר',
+                'חיידרים': 'חדרים',
+                'שיילחן': 'שולחן',
+                'שיילחנות': 'שולחנות',
+                'כיייסא': 'כיסא',
+                'כיייסאות': 'כיסאות',
+                'מייטה': 'מיטה',
+                'מייטות': 'מיטות',
+                'אירון': 'ארון',
+                'אירונות': 'ארונות',
+                'חיילון': 'חלון',
+                'חיילונות': 'חלונות',
+                'דיילת': 'דלת',
+                'דיילתות': 'דלתות',
+                'קייר': 'קיר',
+                'קיירות': 'קירות',
+                'תיקרה': 'תקרה',
+                'תיקרות': 'תקרות',
+                'ריצפה': 'רצפה',
+                'ריצפות': 'רצפות',
+                
+                // שגיאות בפעולות יום יום
+                'אוכיל': 'אוכל',
+                'מיזון': 'מזון',
+                'אירוחה': 'ארוחה',
+                'אירוחות': 'ארוחות',
+                'לייחם': 'לחם',
+                'לייחמים': 'לחמים',
+                'חייליב': 'חלב',
+                'גביינה': 'גבינה',
+                'גביינות': 'גבינות',
+                'בייצה': 'ביצה',
+                'בייצים': 'ביצים',
+                'בייש': 'בשר',
+                'דייג': 'דג',
+                'דייגים': 'דגים',
+                'עיוף': 'עוף',
+                'עיופות': 'עופות',
+                'יירק': 'ירק',
+                'יירקות': 'ירקות',
+                'פייר': 'פרי',
+                'פיירות': 'פירות',
+                'תייפוח': 'תפוח',
+                'תייפוחים': 'תפוחים',
+                'בייננה': 'בננה',
+                'בייננות': 'בננות',
+                'אייגס': 'אגס',
+                'אייגסים': 'אגסים',
+                'תייפוז': 'תפוז',
+                'תייפוזים': 'תפוזים',
+                'לייימון': 'לימון',
+                'לייימונים': 'לימונים',
+                'גייזר': 'גזר',
+                'גייזרים': 'גזרים',
+                'עיגבניה': 'עגבניה',
+                'עיגבניות': 'עגבניות',
+                'מילפפון': 'מלפפון',
+                'מילפפונים': 'מלפפונים',
+                'בייצל': 'בצל',
+                'בייצלים': 'בצלים',
+                'שיום': 'שום',
+                'פייליפל': 'פלפל',
+                'פייליפלים': 'פלפלים',
+                'מייים': 'מים',
+                'מייץ': 'מיץ',
+                'מייצים': 'מיצים',
+                'קייפה': 'קפה',
+                'תייה': 'תה',
+                'שיוקו': 'שוקו',
+                'שיוקולד': 'שוקולד',
+                'שיוקולדים': 'שוקולדים',
+                'עיוגה': 'עוגה',
+                'עיוגות': 'עוגות',
+                'מיימתק': 'ממתק',
+                'מיימתקים': 'ממתקים',
+                
+                // בגדים וחפצים
+                'בייגד': 'בגד',
+                'בייגדים': 'בגדים',
+                'חיולצה': 'חולצה',
+                'חיולצות': 'חולצות',
+                'מיכנסיים': 'מכנסיים',
+                'שיימלה': 'שמלה',
+                'שיימלות': 'שמלות',
+                'חיצאיית': 'חצאית',
+                'חיצאיות': 'חצאיות',
+                'נייעל': 'נעל',
+                'נייעלייים': 'נעליים',
+                'גייריב': 'גרב',
+                'גייריביים': 'גרביים',
+                'מייעייל': 'מעיל',
+                'מייעיילים': 'מעילים',
+                'כייוביע': 'כובע',
+                'כייוביעים': 'כובעים',
+                'מישקפייים': 'משקפיים',
+                'שייעון': 'שעון',
+                'שייעונים': 'שעונים',
+                'תייק': 'תיק',
+                'תייקים': 'תיקים',
+                'מיחברת': 'מחברת',
+                'מיחברות': 'מחברות',
+                'עייפרון': 'עיפרון',
+                'עייפרונות': 'עיפרונות',
+                'עייט': 'עט',
+                'עייטים': 'עטים',
+                'מייחק': 'מחק',
+                'מייחקים': 'מחקים',
+                'סיירגל': 'סרגל',
+                'סיירגלים': 'סרגלים',
+                'מיספרייים': 'מספריים',
+                'דייבק': 'דבק',
+                'נייר': 'נייר',
+                'נייירות': 'ניירות',
+                'מייסמך': 'מסמך',
+                'מייסמכים': 'מסמכים',
+                
+                // אנשים ויחסים
+                'אינשים': 'אנשים',
+                'איידם': 'אדם',
+                'בין אידם': 'בן אדם',
+                'בינייי אידם': 'בני אדם',
+                'אייש': 'איש',
+                'איישיה': 'אישה',
+                'גייביר': 'גבר',
+                'אייממא': 'אמא',
+                'אייבייבא': 'אבא',
+                'הייוריים': 'הורים',
+                'מישפייחה': 'משפחה',
+                'מישפייחות': 'משפחות',
+                'יייליד': 'ילד',
+                'יייליידה': 'ילדה',
+                'יייליידים': 'ילדים',
+                'יייליידות': 'ילדות',
+                'בייין': 'בן',
+                'בייייית': 'בת',
+                'בייינייים': 'בנים',
+                'בייינייות': 'בנות',
+                'אייח': 'אח',
+                'אייחייות': 'אחות',
+                'אייחייים': 'אחים',
+                'אייחיייות': 'אחיות',
+                'סייבא': 'סבא',
+                'סייבתא': 'סבתא',
+                'סייבים': 'סבים',
+                'סייבתות': 'סבתות',
+                'דייוד': 'דוד',
+                'דייודה': 'דודה',
+                'דייודים': 'דודים',
+                'דייודות': 'דודות',
+                'חייביר': 'חבר',
+                'חייבירה': 'חברה',
+                'חייבירייים': 'חברים',
+                'חייבירייות': 'חברות',
+                'יייידיייד': 'ידיד',
+                'יייידיייידה': 'ידידה',
+                'יייידיייידים': 'ידידים',
+                'יייידיייידות': 'ידידות'
             };
 
             // בדיקת שגיאות נפוצות
@@ -1828,6 +1378,721 @@
                         errors.push({
                             word: wrongWord,
                             suggestion: commonErrors[wrongWord],
+                            type: 'שגיאת כתיב נפוצה',
+                            message: 'שגיאת כתיב שכיחה בעברית'
+                        });
+                    });
+                }
+            });
+
+            // בדיקת מילים באנגלית
+            const englishWords = text.match(/\b[a-zA-Z]{3,}\b/g);
+            if (englishWords) {
+                englishWords.forEach(word => {
+                    errors.push({
+                        word: word,
+                        suggestion: 'השתמש במילה בעברית',
+                        type: 'מילה באנגלית',
+                        message: 'מילה באנגלית במקום עברית'
+                    });
+                });
+            }
+
+            // בדיקת חזרות מיותרות
+            const words = text.split(/\s+/);
+            for (let i = 0; i < words.length - 1; i++) {
+                const cleanWord1 = words[i].replace(/[^\u0590-\u05FF\u0041-\u005A\u0061-\u007A]/g, '');
+                const cleanWord2 = words[i + 1].replace(/[^\u0590-\u05FF\u0041-\u005A\u0061-\u007A]/g, '');
+                
+                if (cleanWord1.toLowerCase() === cleanWord2.toLowerCase() && cleanWord1.length > 2) {
+                    errors.push({
+                        word: 'חזרה על המילה "' + cleanWord1 + '"',
+                        suggestion: 'הסר את החזרה המיותרת',
+                        type: 'חזרה מיותרת',
+                        message: 'מילה חוזרת פעמיים ברצף'
+                    });
+                }
+            }
+
+            return errors;
+        }
+
+        function showHebrewSitesSpellingHelp(errorWords, fullText, totalWords) {
+            const helpDiv = document.createElement('div');
+            helpDiv.id = 'errorDetails';
+            helpDiv.className = 'chatgpt-redirect';
+            
+            let helpHtml = '<h4>🔍 נמצאו שגיאות כתיב - השתמש באתרי עברית מקצועיים!</h4>';
+            helpHtml += '<p><strong>סטטוס:</strong> זוהו שגיאות כתיב מתוך ' + totalWords + ' מילים שנבדקו.</p>';
+            helpHtml += '<p><strong>המלצה:</strong> השתמש באתרים המקצועיים הבאים לבדיקה ותיקון מדויק:</p>';
+            
+            // הצגת השגיאות שנמצאו
+            if (errorWords.length > 0) {
+                helpHtml += '<div style="background: white; padding: 20px; border-radius: 10px; margin: 15px 0; border: 2px solid #dc3545;">';
+                helpHtml += '<h5 style="color: #dc3545; margin-bottom: 15px;">❌ שגיאות שזוהו:</h5>';
+                
+                const uniqueWords = [...new Set(errorWords.map(error => error.word))];
+                uniqueWords.slice(0, 8).forEach((word) => {
+                    const errorInfo = errorWords.find(e => e.word === word);
+                    helpHtml += '<div style="background: #fff5f5; border: 1px solid #dc3545; border-radius: 8px; padding: 12px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center;">';
+                    helpHtml += '<span style="color: #dc3545; font-weight: bold;">❌ "' + word + '"</span>';
+                    helpHtml += '<span style="color: #28a745; font-weight: bold;">➡️ "' + errorInfo.suggestion + '"</span>';
+                    helpHtml += '</div>';
+                });
+                
+                if (uniqueWords.length > 8) {
+                    helpHtml += '<p style="text-align: center; color: #666; font-style: italic;">ועוד ' + (uniqueWords.length - 8) + ' שגיאות נוספות...</p>';
+                }
+                
+                helpHtml += '</div>';
+            }
+            
+            // אתרים עבריים מקצועיים לבדיקת כתיב
+            helpHtml += '<div style="background: #e8f5e8; padding: 20px; border-radius: 10px; margin: 15px 0; border: 2px solid #28a745;">';
+            helpHtml += '<h5 style="color: #155724; margin-bottom: 20px; text-align: center;">🇮🇱 אתרי עברית מקצועיים לבדיקת כתיב</h5>';
+            
+            // 1. מורפיקס - המילון המוביל בישראל
+            helpHtml += '<div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-right: 4px solid #2196f3;">';
+            helpHtml += '<h6 style="color: #1976d2; margin-bottom: 10px;">📖 מורפיקס - המילון הישראלי המוביל</h6>';
+            helpHtml += '<p style="margin-bottom: 12px; font-size: 14px; color: #555;">מילון מקצועי עם בדיקת כתיב מתקדמת לעברית</p>';
+            helpHtml += '<a href="https://www.morfix.co.il/" target="_blank" class="btn-chatgpt" style="background: #2196f3; margin: 5px;">';
+            helpHtml += '🔍 פתח מורפיקס לבדיקת כתיב';
+            helpHtml += '</a>';
+            helpHtml += '<p style="font-size: 12px; color: #666; margin-top: 8px;"><strong>איך להשתמש:</strong> חפש כל מילה שגויה והעתק את הטקסט שלך לבדיקה</p>';
+            helpHtml += '</div>';
+            
+            // 2. האקדמיה ללשון העברית
+            helpHtml += '<div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-right: 4px solid #6f42c1;">';
+            helpHtml += '<h6 style="color: #6f42c1; margin-bottom: 10px;">🎓 האקדמיה ללשון העברית</h6>';
+            helpHtml += '<p style="margin-bottom: 12px; font-size: 14px; color: #555;">הגוף הרשמי לקביעת כללי הכתיב הנכון בעברית</p>';
+            helpHtml += '<a href="https://hebrew-academy.org.il/" target="_blank" class="btn-chatgpt" style="background: #6f42c1; margin: 5px;">';
+            helpHtml += '📚 פתח אתר האקדמיה';
+            helpHtml += '</a>';
+            helpHtml += '<p style="font-size: 12px; color: #666; margin-top: 8px;"><strong>איך להשתמש:</strong> חפש כללי כתיב ודקדוק, השתמש בחיפוש באתר</p>';
+            helpHtml += '</div>';
+            
+            // 3. מבדק כתיב
+            helpHtml += '<div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-right: 4px solid #ff9800;">';
+            helpHtml += '<h6 style="color: #f57c00; margin-bottom: 10px;">✅ מבדק כתיב אונליין</h6>';
+            helpHtml += '<p style="margin-bottom: 12px; font-size: 14px; color: #555;">כלי מקוון לבדיקת שגיאות כתיב בעברית</p>';
+            helpHtml += '<a href="https://www.mivdak.co.il/" target="_blank" class="btn-chatgpt" style="background: #ff9800; margin: 5px;">';
+            helpHtml += '🔧 פתח מבדק כתיב';
+            helpHtml += '</a>';
+            helpHtml += '<p style="font-size: 12px; color: #666; margin-top: 8px;"><strong>איך להשתמש:</strong> העתק את כל הטקסט שלך לבדיקה מהירה</p>';
+            helpHtml += '</div>';
+            
+            // 4. ויקימילון
+            helpHtml += '<div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-right: 4px solid #00bcd4;">';
+            helpHtml += '<h6 style="color: #0097a7; margin-bottom: 10px;">📘 ויקימילון עברית</h6>';
+            helpHtml += '<p style="margin-bottom: 12px; font-size: 14px; color: #555;">מילון קהילתי עם דוגמאות שימוש נרחבות</p>';
+            helpHtml += '<a href="https://he.wiktionary.org/" target="_blank" class="btn-chatgpt" style="background: #00bcd4; margin: 5px;">';
+            helpHtml += '📖 פתח ויקימילון';
+            helpHtml += '</a>';
+            helpHtml += '<p style="font-size: 12px; color: #666; margin-top: 8px;"><strong>איך להשתמש:</strong> חפש מילים ותראה דוגמאות לשימוש נכון</p>';
+            helpHtml += '</div>';
+            
+            helpHtml += '</div>';
+            
+            // צ'אט GPT עם הטקסט המלא
+            helpHtml += '<div style="background: #f0f8ff; padding: 20px; border-radius: 10px; margin: 15px 0; border: 2px solid #007bff;">';
+            helpHtml += '<h5 style="color: #0056b3; margin-bottom: 15px; text-align: center;">🤖 בדיקה מתקדמת עם צ\'אט GPT</h5>';
+            
+            // הכנת שאילתה מפורטת לצ'אט GPT
+            const truncatedText = fullText.length > 500 ? fullText.substring(0, 500) + '...' : fullText;
+            const errorWordsText = errorWords.map(e => e.word).slice(0, 10).join(', ');
+            
+            const detailedQuery = `שלום! אני תלמיד וכתבתי חיבור בעברית. אתה יכול לבדוק לי שגיאות כתיב ודקדוק?
+
+זוהו השגיאות הבאות: ${errorWordsText}
+
+הטקסט שלי:
+"${truncatedText}"
+
+בבקשה:
+1. בדוק שגיאות כתיב נוספות שלא זוהו
+2. הסבר מה השגיאות ואיך לתקן
+3. תן טיפים לכתיבה נכונה בעברית
+4. בדוק גם דקדוק ופיסוק
+
+תודה!`;
+            
+            const chatGPTQuery = encodeURIComponent(detailedQuery);
+            const chatGPTUrl = 'https://chat.openai.com/?q=' + chatGPTQuery;
+            
+            helpHtml += '<div style="background: white; padding: 15px; border-radius: 8px; border: 2px dashed #007bff;">';
+            helpHtml += '<h6 style="color: #0056b3; margin-bottom: 12px;">🎯 בדיקה אישית מותאמת</h6>';
+            helpHtml += '<p style="margin-bottom: 15px; color: #333;">צ\'אט GPT יבדוק את <strong>כל הטקסט שלך</strong> ויתן הסברים מפורטים על כל שגיאה</p>';
+            
+            helpHtml += '<div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-right: 3px solid #28a745;">';
+            helpHtml += '<h7 style="color: #155724; font-weight: bold;">✨ מה GPT יעשה עבורך:</h7>';
+            helpHtml += '<ul style="margin: 8px 0; padding-right: 20px; color: #333; font-size: 14px;">';
+            helpHtml += '<li>יבדוק שגיאות כתיב נוספות</li>';
+            helpHtml += '<li>יסביר את החוקים הדקדוקיים</li>';
+            helpHtml += '<li>יבדוק פיסוק וסימני הקראה</li>';
+            helpHtml += '<li>יתן טיפים לשיפור הכתיבה</li>';
+            helpHtml += '</ul>';
+            helpHtml += '</div>';
+            
+            helpHtml += '<a href="' + chatGPTUrl + '" target="_blank" class="btn-chatgpt" style="font-size: 16px; padding: 12px 25px;">';
+            helpHtml += '🚀 פתח צ\'אט GPT עם הטקסט שלך';
+            helpHtml += '</a>';
+            helpHtml += '</div>';
+            
+            helpHtml += '</div>';
+            
+            // הוראות מפורטות
+            helpHtml += '<div style="background: #fff3cd; padding: 20px; border-radius: 10px; margin: 15px 0; border: 2px solid #ffc107;">';
+            helpHtml += '<h5 style="color: #856404; margin-bottom: 15px;">📋 סדר פעולות מומלץ:</h5>';
+            helpHtml += '<ol style="padding-right: 25px; color: #856404; line-height: 1.8; font-size: 15px;">';
+            helpHtml += '<li><strong>התחל עם צ\'אט GPT:</strong> הכי מתקדם ויעיל - יבדוק את כל הטקסט בבת אחת</li>';
+            helpHtml += '<li><strong>השתמש במורפיקס:</strong> לבדיקת מילים ספציפיות שאתה לא בטוח בהן</li>';
+            helpHtml += '<li><strong>בדוק באקדמיה:</strong> אם יש ספק בכללי דקדוק או כתיב</li>';
+            helpHtml += '<li><strong>תקן בטקסט שלך:</strong> עבור על כל שגיאה ותקן ברגע בו כתבת</li>';
+            helpHtml += '<li><strong>בדוק שוב:</strong> לחץ על "בדוק שגיאות כתיב" אחרי התיקונים</li>';
+            helpHtml += '<li><strong>רק אחרי תיקון הכל:</strong> תוכל ליצור את המתווה</li>';
+            helpHtml += '</ol>';
+            helpHtml += '</div>';
+            
+            // אזהרה
+            helpHtml += '<div style="background: #f8d7da; padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid #dc3545; text-align: center;">';
+            helpHtml += '<h6 style="color: #721c24; margin-bottom: 8px;">⚠️ לא ניתן להמשיך עם שגיאות כתיב!</h6>';
+            helpHtml += '<p style="color: #721c24; margin: 0; font-size: 14px;">המערכת תאפשר יצירת מתווה רק אחרי שכל השגיאות יתוקנו</p>';
+            helpHtml += '</div>';
+
+            helpDiv.innerHTML = helpHtml;
+            
+            const activeCard = document.querySelector('.step-content.active .card');
+            if (activeCard) {
+                activeCard.appendChild(helpDiv);
+            }
+        }
+
+        // בדיקת שגיאות כתיב עם כלי AI מתקדמים
+        async function checkSpellingWithAI(text) {
+            const errors = [];
+            
+            // ניסיון 1: LanguageTool API (שירות מקצועי לבדיקת כתיב)
+            try {
+                showMessage('🔗 מתחבר לשירות LanguageTool AI...', 'info');
+                const response = await fetch('https://api.languagetool.org/v2/check', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'text': text,
+                        'language': 'he-IL', // עברית
+                        'enabledOnly': 'false',
+                        'level': 'picky' // בדיקה מחמירה
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showMessage('✅ LanguageTool AI זיהה ' + data.matches.length + ' בעיות', 'info');
+                    
+                    data.matches.forEach(match => {
+                        const errorWord = text.substring(match.offset, match.offset + match.length);
+                        const suggestion = match.replacements && match.replacements.length > 0 
+                            ? match.replacements[0].value 
+                            : 'בדוק את הכתיב';
+                        
+                        errors.push({
+                            word: errorWord,
+                            suggestion: suggestion,
+                            type: 'שגיאה מזוהה על ידי AI',
+                            message: match.message || 'שגיאת כתיב שזוהתה על ידי בינה מלאכותית',
+                            category: match.rule ? match.rule.category.name : 'כתיב'
+                        });
+                    });
+                    
+                    return errors;
+                }
+            } catch (error) {
+                console.log('LanguageTool לא זמין:', error);
+            }
+
+            // ניסיון 2: Microsoft Cognitive Services (Bing Spell Check)
+            try {
+                showMessage('🔗 מתחבר לשירות Microsoft AI...', 'info');
+                const response = await fetch('https://api.cognitive.microsoft.com/bing/v7.0/spellcheck', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Ocp-Apim-Subscription-Key': 'demo-key' // נשתמש במפתח דמו
+                    },
+                    body: new URLSearchParams({
+                        'text': text,
+                        'mode': 'proof',
+                        'mkt': 'he-IL'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showMessage('✅ Microsoft AI זיהה ' + data.flaggedTokens.length + ' בעיות', 'info');
+                    
+                    data.flaggedTokens.forEach(token => {
+                        const suggestion = token.suggestions && token.suggestions.length > 0 
+                            ? token.suggestions[0].suggestion 
+                            : 'בדוק את הכתיב';
+                        
+                        errors.push({
+                            word: token.token,
+                            suggestion: suggestion,
+                            type: 'שגיאה מזוהה על ידי Microsoft AI',
+                            message: 'שגיאת כתיב שזוהתה על ידי בינה מלאכותית של Microsoft',
+                            category: token.type
+                        });
+                    });
+                    
+                    return errors;
+                }
+            } catch (error) {
+                console.log('Microsoft AI לא זמין:', error);
+            }
+
+            // ניסיון 3: TextGears API
+            try {
+                showMessage('🔗 מתחבר לשירות TextGears AI...', 'info');
+                const response = await fetch('https://api.textgears.com/spelling', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'text': text,
+                        'language': 'he-IL',
+                        'key': 'demo' // מפתח דמו
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showMessage('✅ TextGears AI זיהה ' + data.errors.length + ' בעיות', 'info');
+                    
+                    data.errors.forEach(error => {
+                        const suggestion = error.better && error.better.length > 0 
+                            ? error.better[0] 
+                            : 'בדוק את הכתיב';
+                        
+                        errors.push({
+                            word: error.bad,
+                            suggestion: suggestion,
+                            type: 'שגיאה מזוהה על ידי TextGears AI',
+                            message: 'שגיאת כתיב שזוהתה על ידי בינה מלאכותית',
+                            category: 'spelling'
+                        });
+                    });
+                    
+                    return errors;
+                }
+            } catch (error) {
+                console.log('TextGears AI לא זמין:', error);
+            }
+
+            // אם כל השירותים לא זמינים, נשתמש בבדיקה מקומית משופרת
+            showMessage('⚠️ שירותי AI חיצוניים לא זמינים, עובר לבדיקה מקומית מתקדמת', 'info');
+            return checkSpellingAdvancedLocal(text);
+        }
+
+        // בדיקה מקומית מתקדמת כגיבוי
+        function checkSpellingAdvancedLocal(text) {
+            const errors = [];
+            
+            // שגיאות כתיב נפוצות מאוד בעברית
+            const commonErrors = {
+                'בעייה': 'בעיה',
+                'שיכבה': 'שכבה',
+                'הולכ': 'הולך',
+                'זכרון': 'זיכרון',
+                'איפוא': 'אפוא',
+                'מכיון': 'מכיוון',
+                'באו': 'בואו',
+                'כתיבתי': 'כתבתי',
+                'קריאתי': 'קראתי',
+                'למידתי': 'למדתי',
+                'ענתי': 'עניתי',
+                'ביית': 'בית',
+                'קיול': 'קול',
+                'ייום': 'יום',
+                'לייד': 'ליד',
+                'עינייים': 'עיניים',
+                'ידייים': 'ידיים',
+                'רגלייים': 'רגליים'
+            };
+
+            Object.keys(commonErrors).forEach(wrongWord => {
+                const regex = new RegExp('\\b' + wrongWord + '\\b', 'gi');
+                const matches = text.match(regex);
+                if (matches) {
+                    matches.forEach(() => {
+                        errors.push({
+                            word: wrongWord,
+                            suggestion: commonErrors[wrongWord],
+                            type: 'שגיאה מזוהה מקומית',
+                            message: 'שגיאת כתיב נפוצה בעברית'
+                        });
+                    });
+                }
+            });
+
+            // בדיקת מילים באנגלית
+            const englishWords = text.match(/\b[a-zA-Z]{3,}\b/g);
+            if (englishWords) {
+                englishWords.forEach(word => {
+                    errors.push({
+                        word: word,
+                        suggestion: 'השתמש במילה בעברית',
+                        type: 'מילה באנגלית',
+                        message: 'מילה באנגלית במקום עברית'
+                    });
+                });
+            }
+
+            return errors;
+        }
+
+        function showAISpellingHelp(errorWords, totalWords) {
+            const helpDiv = document.createElement('div');
+            helpDiv.id = 'errorDetails';
+            helpDiv.className = 'chatgpt-redirect';
+            
+            let helpHtml = '<h4>🤖 הבינה המלאכותית זיהתה שגיאות כתיב!</h4>';
+            helpHtml += '<p><strong>בדיקה מתקדמת:</strong> המערכת השתמשה בכלי בינה מלאכותית מתקדמים כדי לזהות שגיאות כתיב בטקסט שלך.</p>';
+            helpHtml += '<p><strong>תוצאות:</strong> נמצאו שגיאות כתיב מתוך ' + totalWords + ' מילים שנבדקו.</p>';
+            
+            // הצגת השגיאות שזוהו על ידי AI
+            helpHtml += '<div style="background: white; padding: 20px; border-radius: 10px; margin: 15px 0; border: 2px solid #dc3545;">';
+            helpHtml += '<h5 style="color: #dc3545; margin-bottom: 15px;">🔍 שגיאות כתיב שזוהו על ידי AI:</h5>';
+            
+            const uniqueWords = [...new Set(errorWords.map(error => error.word))];
+            uniqueWords.forEach((word, index) => {
+                const errorInfo = errorWords.find(e => e.word === word);
+                helpHtml += '<div style="background: #fff5f5; border: 1px solid #dc3545; border-radius: 8px; padding: 15px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center;">';
+                helpHtml += '<div>';
+                helpHtml += '<span style="color: #dc3545; font-weight: bold; font-size: 16px;">❌ "' + word + '"</span>';
+                helpHtml += '<br><small style="color: #666; font-style: italic;">' + errorInfo.type + '</small>';
+                if (errorInfo.message) {
+                    helpHtml += '<br><small style="color: #888;">' + errorInfo.message + '</small>';
+                }
+                helpHtml += '</div>';
+                helpHtml += '<div style="text-align: left;">';
+                helpHtml += '<span style="color: #28a745; font-weight: bold; font-size: 16px;">✅ "' + errorInfo.suggestion + '"</span>';
+                helpHtml += '</div>';
+                helpHtml += '</div>';
+            });
+            
+            helpHtml += '</div>';
+            
+            // הוראות לתיקון
+            helpHtml += '<div style="background: #e8f4fd; padding: 20px; border-radius: 10px; margin: 15px 0; border: 2px solid #007bff;">';
+            helpHtml += '<h5 style="color: #0056b3; margin-bottom: 15px;">📋 איך לתקן את השגיאות:</h5>';
+            helpHtml += '<ol style="padding-right: 20px; color: #0056b3; line-height: 1.8;">';
+            helpHtml += '<li><strong>עבור על כל שגיאה:</strong> חפש את המילה השגויה בטקסט שלך</li>';
+            helpHtml += '<li><strong>החלף למילה הנכונה:</strong> השתמש בהצעת התיקון שהAI נתן</li>';
+            helpHtml += '<li><strong>בדוק שוב:</strong> לחץ על "בדוק שגיאות כתיב" אחרי התיקון</li>';
+            helpHtml += '<li><strong>רק אחרי שאין שגיאות:</strong> תוכל ליצור את המתווה</li>';
+            helpHtml += '</ol>';
+            helpHtml += '</div>';
+            
+            // כלי עזרה נוספים
+            helpHtml += '<div style="background: #fff3cd; padding: 20px; border-radius: 10px; margin: 15px 0; border: 2px solid #ffc107;">';
+            helpHtml += '<h5 style="color: #856404; margin-bottom: 15px;">🛠️ כלי עזרה נוספים:</h5>';
+            
+            helpHtml += '<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">';
+            
+            // מורפיקס
+            helpHtml += '<a href="https://www.morfix.co.il/" target="_blank" class="btn-chatgpt" style="background: #2196f3;">';
+            helpHtml += '📖 מילון מורפיקס';
+            helpHtml += '</a>';
+            
+            // האקדמיה ללשון העברית
+            helpHtml += '<a href="https://hebrew-academy.org.il/" target="_blank" class="btn-chatgpt" style="background: #6f42c1;">';
+            helpHtml += '🎓 האקדמיה ללשון';
+            helpHtml += '</a>';
+            
+            // מבדק כתיב
+            helpHtml += '<a href="https://www.mivdak.co.il/" target="_blank" class="btn-chatgpt" style="background: #ff9800;">';
+            helpHtml += '✅ מבדק כתיב';
+            helpHtml += '</a>';
+            
+            // צ'אט GPT עם השגיאות
+            const wordsForQuery = uniqueWords.slice(0, 8).join(', ');
+            const chatGPTQuery = encodeURIComponent('שלום! בינה מלאכותית זיהתה שגיאות כתיב בטקסט שלי במילים: ' + wordsForQuery + '. אתה יכול להסביר לי איך כותבים נכון כל מילה ומה החוק הדקדוקי? תודה!');
+            const chatGPTUrl = 'https://chat.openai.com/?q=' + chatGPTQuery;
+            
+            helpHtml += '<a href="' + chatGPTUrl + '" target="_blank" class="btn-chatgpt">';
+            helpHtml += '🤖 שאל צ\'אט GPT';
+            helpHtml += '</a>';
+            
+            helpHtml += '</div>';
+            helpHtml += '</div>';
+            
+            // הדגשת חשיבות התיקון
+            helpHtml += '<div style="background: #f8d7da; padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid #dc3545; text-align: center;">';
+            helpHtml += '<h6 style="color: #721c24; margin-bottom: 10px;">⚠️ חשוב לתקן לפני המשך!</h6>';
+            helpHtml += '<p style="color: #721c24; margin: 0;">המערכת לא תאפשר יצירת מתווה עד שכל שגיאות הכתיב יתוקנו</p>';
+            helpHtml += '</div>';
+
+            helpDiv.innerHTML = helpHtml;
+            
+            const activeCard = document.querySelector('.step-content.active .card');
+            if (activeCard) {
+                activeCard.appendChild(helpDiv);
+            }
+        }
+
+        function checkSpellingSimple(text) {
+            const errors = [];
+            
+            // מילון מורחב של שגיאות כתיב נפוצות מאוד שתלמידים עושים
+            const commonErrors = {
+                // שגיאות בסיסיות נפוצות
+                'בעייה': 'בעיה',
+                'בעיות': 'בעיות',
+                'שיכבה': 'שכבה', 
+                'הולכ': 'הולך',
+                'זכרון': 'זיכרון',
+                'זכרונות': 'זיכרונות',
+                'איפוא': 'אפוא',
+                'מכיון': 'מכיוון',
+                'באו': 'בואו',
+                
+                // שגיאות בפעלים בזמן עבר
+                'עשיתי': 'עשיתי', // נכון - לא שגיאה
+                'אמרתי': 'אמרתי', // נכון - לא שגיאה
+                'הלכתי': 'הלכתי', // נכון - לא שגיאה
+                'ראיתי': 'ראיתי', // נכון - לא שגיאה
+                'שמעתי': 'שמעתי', // נכון - לא שגיאה
+                'למדתי': 'למדתי', // נכון - לא שגיאה
+                'כתבתי': 'כתבתי', // נכון - לא שגיאה
+                'קראתי': 'קראתי', // נכון - לא שגיאה
+                
+                // שגיאות אמיתיות בפעלים
+                'עשיתי': 'עשיתי',
+                'אמרתי': 'אמרתי', 
+                'הלכתי': 'הלכתי',
+                'ראיתי': 'ראיתי',
+                'שמעתי': 'שמעתי',
+                'למדתי': 'למדתי',
+                'כתיבתי': 'כתבתי', // שגיאה - יותר מדי אותיות
+                'קריאתי': 'קראתי', // שגיאה - יותר מדי אותיות
+                'שמיעתי': 'שמעתי', // שגיאה - יותר מדי אותיות
+                'למידתי': 'למדתי', // שגיאה - יותר מדי אותיות
+                'הליכתי': 'הלכתי', // שגיאה - יותר מדי אותיות
+                'ראיותי': 'ראיתי', // שגיאה - יותר מדי אותיות
+                'שאלתי': 'שאלתי', // נכון
+                'שאילתי': 'שאלתי', // שגיאה
+                'ענתי': 'עניתי', // שגיאה - חסרות אותיות
+                'עניתי': 'עניתי', // נכון
+                'באתי': 'באתי', // נכון
+                'יצאתי': 'יצאתי', // נכון
+                'נכנסתי': 'נכנסתי', // נכון
+                'ישבתי': 'ישבתי', // נכון
+                'עמדתי': 'עמדתי', // נכון
+                'רצתי': 'רצתי', // נכון
+                'שיחקתי': 'שיחקתי', // נכון
+                'עבדתי': 'עבדתי', // נכון
+                'אהבתי': 'אהבתי', // נכון
+                'שנאתי': 'שנאתי', // נכון
+                'פחדתי': 'פחדתי', // נכון
+                'שמחתי': 'שמחתי', // נכון
+                'בכיתי': 'בכיתי', // נכון
+                'צחקתי': 'צחקתי', // נכון
+                'חשבתי': 'חשבתי', // נכון
+                'זכרתי': 'זכרתי', // נכון
+                'שכחתי': 'שכחתי', // נכון
+                'הרגשתי': 'הרגשתי', // נכון
+                'התחלתי': 'התחלתי', // נכון
+                'סיימתי': 'סיימתי', // נכון
+                'המשכתי': 'המשכתי', // נכון
+                'עצרתי': 'עצרתי', // נכון
+                'חזרתי': 'חזרתי', // נכון
+                'הגעתי': 'הגעתי', // נכון
+                'עזבתי': 'עזבתי', // נכון
+                'נשארתי': 'נשארתי', // נכון
+                'חיכיתי': 'חיכיתי', // נכון
+                'קיוויתי': 'קיוויתי', // נכון
+                'רציתי': 'רציתי', // נכון
+                'יכולתי': 'יכולתי', // נכון
+                'נתתי': 'נתתי', // נכון
+                'לקחתי': 'לקחתי', // נכון
+                'קניתי': 'קניתי', // נכון
+                'מכרתי': 'מכרתי', // נכון
+                'סיפרתי': 'סיפרתי', // נכון
+                'התקשרתי': 'התקשרתי', // נכון
+                'פגשתי': 'פגשתי', // נכון
+                'ביקרתי': 'ביקרתי', // נכון
+                'טיילתי': 'טיילתי', // נכון
+                'נסעתי': 'נסעתי', // נכון
+                
+                // מילים בסיסיות ששגויות הרבה
+                'חיי': 'חיי', // נכון
+                'חיים': 'חיים', // נכון  
+                'חייב': 'חייב', // נכון
+                'חייבת': 'חייבת', // נכון
+                'חייבים': 'חייבים', // נכון
+                'חייבות': 'חייבות', // נכון
+                'באמת': 'באמת', // נכון
+                'למעשה': 'למעשה', // נכון
+                'בעיקר': 'בעיקר', // נכון
+                'בכלל': 'בכלל', // נכון
+                'בגלל': 'בגלל', // נכון
+                'חשוב': 'חשוב', // נכון
+                'חשובה': 'חשובה', // נכון
+                'חשובים': 'חשובים', // נכון
+                'חשובות': 'חשובות', // נכון
+                'יותר': 'יותר', // נכון
+                'פחות': 'פחות', // נכון
+                'הכי': 'הכי', // נכון
+                'ביותר': 'ביותר', // נכון
+                'מאוד': 'מאוד', // נכון
+                'הרבה': 'הרבה', // נכון
+                'מעט': 'מעט', // נכון
+                'קצת': 'קצת', // נכון
+                'די': 'די', // נכון
+                'מדי': 'מדי', // נכון
+                'כמעט': 'כמעט', // נכון
+                'בדיוק': 'בדיוק', // נכון
+                'ממש': 'ממש', // נכון
+                'לגמרי': 'לגמרי', // נכון
+                'אולי': 'אולי', // נכון
+                'כנראה': 'כנראה', // נכון
+                'בוודאי': 'בוודאי', // נכון
+                'ודאי': 'ודאי', // נכון
+                'בטח': 'בטח', // נכון
+                'תמיד': 'תמיד', // נכון
+                'לעולם': 'לעולם', // נכון
+                'אף פעם': 'אף פעם', // נכון
+                'פעם': 'פעם', // נכון
+                'פעמים': 'פעמים', // נכון
+                'לפעמים': 'לפעמים', // נכון
+                'הפעם': 'הפעם', // נכון
+                'יחד': 'יחד', // נכון
+                'לבד': 'לבד', // נכון
+                'ביחד': 'ביחד', // נכון
+                
+                // שגיאות נפוצות אמיתיות שתלמידים עושים
+                'שיבה': 'שכבה', // שגיאה נפוצה
+                'שיחבה': 'שכבה', // שגיאה נפוצה
+                'בעיה': 'בעיה', // זה נכון - לא שגיאה!
+                'זיכרון': 'זיכרון', // זה נכון - לא שגיאה!
+                'אפוא': 'אפוא', // זה נכון - לא שגיאה!
+                'מכיוון': 'מכיוון', // זה נכון - לא שגיאה!
+                'בואו': 'בואו', // זה נכון - לא שגיאה!
+                'הולך': 'הולך', // זה נכון - לא שגיאה!
+                'שכבה': 'שכבה', // זה נכון - לא שגיאה!
+            };
+
+            // רק שגיאות אמיתיות - אני אכין מילון נפרד של שגיאות
+            const realSpellingErrors = {
+                'בעייה': 'בעיה',           // שגיאה אמיתית
+                'שיכבה': 'שכבה',           // שגיאה אמיתית
+                'שיבה': 'שכבה',            // שגיאה אמיתית
+                'שיחבה': 'שכבה',           // שגיאה אמיתית
+                'הולכ': 'הולך',            // שגיאה אמיתית
+                'זכרון': 'זיכרון',          // שגיאה אמיתית
+                'זכרונות': 'זיכרונות',      // שגיאה אמיתית
+                'איפוא': 'אפוא',           // שגיאה אמיתית
+                'מכיון': 'מכיוון',          // שגיאה אמיתית
+                'באו': 'בואו',             // שגיאה אמיתית
+                'כתיבתי': 'כתבתי',         // שגיאה אמיתית
+                'קריאתי': 'קראתי',         // שגיאה אמיתית
+                'שמיעתי': 'שמעתי',         // שגיאה אמיתית
+                'למידתי': 'למדתי',         // שגיאה אמיתית
+                'הליכתי': 'הלכתי',         // שגיאה אמיתית
+                'ראיותי': 'ראיתי',         // שגיאה אמיתית
+                'שאילתי': 'שאלתי',         // שגיאה אמיתית
+                'ענתי': 'עניתי',           // שגיאה אמיתית
+                'אירע': 'ארע',             // שגיאה אמיתית
+                'אירעה': 'ארעה',           // שגיאה אמיתית
+                'איחור': 'אחור',           // שגיאה אמיתית
+                'איחוז': 'אחוז',           // שגיאה אמיתית
+                'אימון': 'אמון',           // אם הכוונה לאמון - שגיאה
+                'אירוח': 'ארוח',           // שגיאה אמיתית
+                'אישור': 'אשור',           // אם הכוונה לאשור - שגיאה
+                'גבעה': 'גבעה',            // נכון
+                'גיבעה': 'גבעה',           // שגיאה אמיתית
+                'מילה': 'מילה',            // נכון
+                'מיילה': 'מילה',           // שגיאה אמיתית
+                'ליד': 'ליד',              // נכון
+                'לייד': 'ליד',             // שגיאה אמיתית
+                'שיר': 'שיר',              // נכון
+                'שיירה': 'שירה',           // שגיאה אמיתית אם הכוונה לשירה
+                'נסיעה': 'נסיעה',          // נכון
+                'נסייעה': 'נסיעה',         // שגיאה אמיתית
+                'חיבור': 'חיבור',          // נכון
+                'חייבור': 'חיבור',         // שגיאה אמיתית
+                'שיחה': 'שיחה',            // נכון
+                'שייחה': 'שיחה',           // שגיאה אמיתית
+                'ביקור': 'ביקור',          // נכון
+                'בייקור': 'ביקור',         // שגיאה אמיתית
+                'חנות': 'חנות',            // נכון
+                'חיינות': 'חנות',          // שגיאה אמיתית
+                'בקשה': 'בקשה',            // נכון
+                'בקישה': 'בקשה',           // שגיאה אמיתית
+                'מדע': 'מדע',              // נכון
+                'מידע': 'מידע',            // נכון - אם זה מה שהתכוון
+                'עולם': 'עולם',            // נכון
+                'עיולם': 'עולם',           // שגיאה אמיתית
+                'משפט': 'משפט',            // נכון
+                'מישפט': 'משפט',           // שגיאה אמיתית
+                'דבר': 'דבר',              // נכון
+                'דיבר': 'דיבר',            // נכון אם זה פועל
+                'דיבור': 'דיבור',          // נכון
+                'דיבר': 'דיבר',            // נכון
+                'איש': 'איש',              // נכון
+                'אייש': 'איש',             // שגיאה אמיתית
+                'אשה': 'אשה',              // נכון
+                'אישה': 'אישה',            // נכון
+                'איישה': 'אישה',           // שגיאה אמיתית
+                'לימוד': 'לימוד',          // נכון
+                'ליימוד': 'לימוד',         // שגיאה אמיתית
+                'שיטה': 'שיטה',            // נכון
+                'שייטה': 'שיטה',           // שגיאה אמיתית
+                'בחירה': 'בחירה',          // נכון
+                'בחיירה': 'בחירה',         // שגיאה אמיתית
+                'קריאה': 'קריאה',          // נכון
+                'קרייאה': 'קריאה',         // שגיאה אמיתית
+                'כתיבה': 'כתיבה',          // נכון
+                'כתיבה': 'כתיבה',          // נכון כבר
+                'כתיבה': 'כתיבה',          // נכון כבר
+                'כתיבה': 'כתיבה',          // נכון כבר
+                'כתיבה': 'כתיבה',          // נכון כבר
+                'כתיבה': 'כתיבה',          // נכון כבר
+                'כתיבה': 'כתיבה',          // נכון כבר
+                'כתיבה': 'כתיבה',          // נכון כבר
+                'כתיבה': 'כתיבה',          // נכון כבר
+                'כתיבה': 'כתיבה',          // נכון כבר
+                'בית': 'בית',              // נכון
+                'ביית': 'בית',             // שגיאה אמיתית
+                'לבית': 'לבית',            // נכון
+                'לביית': 'לבית',           // שגיאה אמיתית
+                'קול': 'קול',              // נכון
+                'קיול': 'קול',             // שגיאה אמיתית
+                'יום': 'יום',              // נכון
+                'ייום': 'יום',             // שגיאה אמיתית
+                'לילה': 'לילה',            // נכון
+                'לייל': 'ליל',             // שגיאה אמיתית אם הכוונה לליל
+                'לילה': 'לילה',            // נכון כבר
+                'עיניים': 'עיניים',        // נכון
+                'עינייים': 'עיניים',       // שגיאה אמיתית
+                'ידיים': 'ידיים',          // נכון
+                'ידייים': 'ידיים',         // שגיאה אמיתית
+                'רגליים': 'רגליים',        // נכון
+                'רגלייים': 'רגליים',       // שגיאה אמיתית
+            };
+
+            // בדיקת שגיאות נפוצות
+            Object.keys(realSpellingErrors).forEach(wrongWord => {
+                const regex = new RegExp('\\b' + wrongWord + '\\b', 'gi');
+                const matches = text.match(regex);
+                if (matches) {
+                    matches.forEach(() => {
+                        errors.push({
+                            word: wrongWord,
+                            suggestion: realSpellingErrors[wrongWord],
                             type: 'שגיאת כתיב',
                             message: 'שגיאת כתיב נפוצה בעברית'
                         });
@@ -1851,146 +2116,63 @@
                 }
             }
 
-            // בדיקת סימני פיסוק חסרים
-            const sentences = text.split(/[.!?]/).filter(s => s.trim().length > 15);
-            sentences.forEach(sentence => {
-                if (sentence.trim() && !sentence.trim().match(/[.!?]$/)) {
+            // בדיקת מילים באנגלית
+            const englishWords = text.match(/\b[a-zA-Z]{3,}\b/g);
+            if (englishWords) {
+                englishWords.forEach(word => {
                     errors.push({
-                        word: 'חסר סימן פיסוק בסוף המשפט',
-                        suggestion: 'הוסף נקודה, סימן שאלה או סימן קריאה',
-                        type: 'סימני פיסוק',
-                        message: 'כל משפט צריך להסתיים בסימן פיסוק מתאים'
+                        word: word,
+                        suggestion: 'השתמש במילה בעברית',
+                        type: 'מילה באנגלית',
+                        message: 'מילה באנגלית במקום עברית'
                     });
-                }
-            });
-
-            // בדיקת רווחים כפולים
-            if (text.includes('  ')) {
-                errors.push({
-                    word: 'רווחים כפולים',
-                    suggestion: 'השתמש ברווח יחיד בין מילים',
-                    type: 'עיצוב טקסט',
-                    message: 'יש יותר מרווח אחד בין מילים'
                 });
             }
-
-            // בדיקת התחלה במילה קטנה (לאחר נקודה)
-            const afterPeriod = text.match(/\.\s+[א-ת]/g);
-            if (afterPeriod) {
-                errors.push({
-                    word: 'התחלת משפט באות קטנה',
-                    suggestion: 'התחל משפט חדש באות גדולה',
-                    type: 'כתיב נכון',
-                    message: 'משפט חדש צריך להתחיל באות גדולה'
-                });
-            }
-
-            // בדיקת מילות קישור חסרות
-            const longSentences = text.split(/[.!?]/).filter(s => s.split(' ').length > 15);
-            longSentences.forEach(sentence => {
-                if (!sentence.match(/(ואולם|אולם|אבל|אך|ברם|למרות|עם זאת|בנוסף|יתרה מכך|מצד אחד|מצד שני|ראשית|שנית|לבסוף|לסיכום)/)) {
-                    errors.push({
-                        word: 'משפט ארוך ללא מילות קישור',
-                        suggestion: 'הוסף מילות קישור כמו "אולם", "בנוסף", "יתרה מכך"',
-                        type: 'מבנה משפט',
-                        message: 'משפטים ארוכים זקוקים למילות קישור לבהירות'
-                    });
-                }
-            });
-
-            // בדיקת שימוש יתר במילה "כי"
-            const kiCount = (text.match(/\bכי\b/g) || []).length;
-            const wordCount = text.split(/\s+/).length;
-            if (kiCount > wordCount / 20) {
-                errors.push({
-                    word: 'שימוש יתר במילה "כי"',
-                    suggestion: 'השתמש במילים חלופיות: "מכיוון ש", "בגלל ש", "היות ש"',
-                    type: 'עושר לשוני',
-                    message: 'שימוש יתר במילה אחת פוגע בעושר הלשוני'
-                });
-            }
-
-            // בדיקת מילות מילוי מיותרות
-            const fillerWords = ['אמ', 'אה', 'אמממ', 'כאילו', 'בעצם', 'אוקיי', 'טוב', 'אז אמ'];
-            fillerWords.forEach(filler => {
-                if (text.includes(filler)) {
-                    errors.push({
-                        word: `מילת מילוי: "${filler}"`,
-                        suggestion: 'הסר מילות מילוי מיותרות',
-                        type: 'ניקוי טקסט',
-                        message: 'מילות מילוי פוגעות ברמת הכתיבה'
-                    });
-                }
-            });
 
             return errors;
         }
 
-        // פונקציה לתיקון אוטומטי של שגיאות
-        function copyCorrection(fieldName, wrongWord, correctWord) {
-            // מצא את השדה לפי שם התווית
-            const labels = document.querySelectorAll('label');
-            let targetInput = null;
+        function showSpellingHelp(errorWords) {
+            const helpDiv = document.createElement('div');
+            helpDiv.id = 'errorDetails';
+            helpDiv.className = 'chatgpt-redirect';
             
-            labels.forEach(label => {
-                if (label.textContent.includes(fieldName)) {
-                    targetInput = label.nextElementSibling;
+            let helpHtml = '<h4>💡 נמצאו שגיאות כתיב - בואו נתקן אותן!</h4>';
+            helpHtml += '<p>זוהו שגיאות כתיב בטקסט. השתמש בכלים הבאים כדי ללמוד את הכתיב הנכון:</p>';
+            
+            helpHtml += '<div style="background: white; padding: 20px; border-radius: 10px; margin: 15px 0;">';
+            helpHtml += '<h5 style="color: #dc3545; margin-bottom: 15px;">🔍 שגיאות שנמצאו:</h5>';
+            
+            const uniqueWords = [...new Set(errorWords.map(error => error.word))];
+            uniqueWords.forEach((word) => {
+                helpHtml += '<div class="word-error">';
+                helpHtml += '<span class="error-word">❌ ' + word + '</span>';
+                const suggestion = errorWords.find(e => e.word === word)?.suggestion || '';
+                if (suggestion) {
+                    helpHtml += '<span class="suggestion">➡️ ' + suggestion + '</span>';
                 }
+                helpHtml += '</div>';
             });
             
-            if (targetInput) {
-                // החלף את המילה השגויה במילה הנכונה
-                const currentText = targetInput.value;
-                const correctedText = currentText.replace(new RegExp('\\b' + wrongWord + '\\b', 'gi'), correctWord);
-                targetInput.value = correctedText;
-                
-                // סמן את השדה כתוקן
-                targetInput.style.borderColor = '#ffc107';
-                targetInput.style.backgroundColor = '#fff8e1';
-                
-                // הצג הודעה
-                showMessage(`✅ שגיאת כתיב תוקנה! המילה "${wrongWord}" הוחלפה ל-"${correctWord}" בשדה "${fieldName}"`, 'success');
-                
-                // התמקד בשדה שתוקן
-                targetInput.focus();
-                
-                // אחרי 3 שניות, הסר את הסימון המיוחד
-                setTimeout(() => {
-                    targetInput.style.borderColor = '#28a745';
-                    targetInput.style.backgroundColor = '#f0fff4';
-                }, 3000);
-            }
-        }
-
-        // פונקציה לתיקון כל השגיאות אוטומטית
-        function fixAllErrors() {
-            const errorDetails = document.getElementById('errorDetails');
-            if (!errorDetails) {
-                showMessage('❌ לא נמצאו שגיאות לתיקון', 'error');
-                return;
-            }
-
-            let fixedCount = 0;
-            const buttons = errorDetails.querySelectorAll('button[onclick*="copyCorrection"]');
+            helpHtml += '</div>';
             
-            buttons.forEach((button, index) => {
-                setTimeout(() => {
-                    button.click();
-                    fixedCount++;
-                    
-                    if (fixedCount === buttons.length) {
-                        setTimeout(() => {
-                            showMessage(`🎉 כל שגיאות הכתיב תוקנו אוטומטית! (${fixedCount} שגיאות כתיב תוקנו)`, 'success');
-                            // הסר את רשימת השגיאות אחרי התיקון
-                            setTimeout(() => {
-                                if (errorDetails.parentNode) {
-                                    errorDetails.remove();
-                                }
-                            }, 2000);
-                        }, 500);
-                    }
-                }, index * 300); // השהיה קטנה בין התיקונים
-            });
+            helpHtml += '<div style="text-align: center; margin: 20px 0;">';
+            helpHtml += '<a href="https://www.morfix.co.il/" target="_blank" class="btn-chatgpt" style="background: #2196f3; margin: 5px;">📖 מילון מורפיקס</a>';
+            helpHtml += '<a href="https://hebrew-academy.org.il/" target="_blank" class="btn-chatgpt" style="background: #6f42c1; margin: 5px;">🎓 האקדמיה ללשון</a>';
+            
+            const wordsForQuery = uniqueWords.slice(0, 5).join(', ');
+            const chatGPTQuery = encodeURIComponent('שלום! יש לי שגיאות כתיב במילים: ' + wordsForQuery + '. איך כותבים נכון?');
+            const chatGPTUrl = 'https://chat.openai.com/?q=' + chatGPTQuery;
+            
+            helpHtml += '<a href="' + chatGPTUrl + '" target="_blank" class="btn-chatgpt" style="margin: 5px;">🤖 צ\'אט GPT</a>';
+            helpHtml += '</div>';
+
+            helpDiv.innerHTML = helpHtml;
+            
+            const activeCard = document.querySelector('.step-content.active .card');
+            if (activeCard) {
+                activeCard.appendChild(helpDiv);
+            }
         }
 
         function showMessage(message, type) {
@@ -2025,7 +2207,16 @@
             }
         }
 
+        // טעינת הדף
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('דף נטען בהצלחה');
+            
+            const homepage = document.getElementById('homepage');
+            if (homepage) {
+                homepage.classList.add('active');
+                console.log('דף הבית מוצג');
+            }
+            
             const buttons = document.querySelectorAll('.btn-primary, .back-btn');
             buttons.forEach(button => {
                 button.addEventListener('click', function() {
@@ -2045,6 +2236,24 @@
 
                 input.addEventListener('blur', function() {
                     this.style.transform = 'scale(1)';
+                });
+            });
+            
+            const essayBoxes = document.querySelectorAll('.essay-type-box');
+            console.log('נמצאו', essayBoxes.length, 'קוביות סוג חיבור');
+            
+            essayBoxes.forEach((box, index) => {
+                box.addEventListener('click', function() {
+                    console.log('נלחץ על קוביה', index);
+                    const onclick = this.getAttribute('onclick');
+                    if (onclick) {
+                        console.log('מפעיל:', onclick);
+                        try {
+                            eval(onclick);
+                        } catch (error) {
+                            console.error('שגיאה בביצוע onclick:', error);
+                        }
+                    }
                 });
             });
         });
